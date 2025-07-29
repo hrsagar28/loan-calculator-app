@@ -63,10 +63,17 @@ export default function App() {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
 
-    // Effect for dynamic theme styles
+    // --- FIX: Refactored theme application logic for stability ---
     useEffect(() => {
-        const currentTheme = themes[themeName]?.[isDarkMode ? 'dark' : 'light'];
-        if (!currentTheme) return;
+        // This effect runs when the theme *name* changes to set up the CSS variables for both light and dark modes.
+        const lightTheme = themes[themeName]?.light;
+        const darkTheme = themes[themeName]?.dark;
+        if (!lightTheme || !darkTheme) return;
+
+        const generateCssVars = (theme) => Object.entries(theme).map(([key, value]) => `--color-${key}: ${value};`).join('\n');
+
+        const lightVars = generateCssVars(lightTheme);
+        const darkVars = generateCssVars(darkTheme);
 
         let style = document.getElementById('dynamic-theme-styles');
         if (!style) {
@@ -74,11 +81,24 @@ export default function App() {
             style.id = 'dynamic-theme-styles';
             document.head.appendChild(style);
         }
-        const cssVars = Object.entries(currentTheme).map(([key, value]) => `--color-${key}: ${value};`).join('\n');
-        style.innerHTML = `:root { ${cssVars} --ease-expressive: cubic-bezier(0.4, 0.0, 0.2, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); }`;
 
+        // Define CSS variables for :root (light mode) and .dark (dark mode)
+        style.innerHTML = `
+            :root {
+                ${lightVars}
+            }
+            .dark {
+                ${darkVars}
+            }
+        `;
+    }, [themeName]); // Only re-runs when the theme name changes
+
+    useEffect(() => {
+        // This separate, simpler effect just handles toggling the class on the html element.
         document.documentElement.classList.toggle('dark', isDarkMode);
-    }, [isDarkMode, themeName]);
+        localStorage.setItem('isDarkMode', isDarkMode);
+    }, [isDarkMode]); // Only re-runs when dark mode is toggled
+
 
     // Effect to show/hide report
     useEffect(() => {
