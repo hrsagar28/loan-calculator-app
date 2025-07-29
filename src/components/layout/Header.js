@@ -31,7 +31,6 @@ const Header = ({
         if (callback) callback(...args);
     };
 
-    // --- FIX: This effect handles the sliding animation for the mode switcher ---
     useLayoutEffect(() => {
         const updateSliderPosition = () => {
             const activeButton = appMode === 'calculator'
@@ -57,7 +56,6 @@ const Header = ({
         };
     }, [appMode]);
 
-    // --- FIX: This effect handles showing/hiding the header on scroll ---
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
@@ -117,8 +115,8 @@ const Header = ({
                         <button ref={affordabilityModeButtonRef} onClick={handleInteractiveClick(() => { setAppMode('affordability'); })} className={`relative px-4 py-1.5 font-semibold rounded-full transition-colors ${appMode === 'affordability' ? 'text-on-primary' : 'text-on-surface-variant'}`}>Affordability</button>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-1 md:gap-2">
+                
+                <div className="flex items-center gap-1 md:gap-2 text-on-surface-variant">
                     {hasResults && appMode === 'calculator' && (
                         <>
                             <Tooltip text="Export CSV"><button onClick={handleInteractiveClick(handleExportCsv)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Csv className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>

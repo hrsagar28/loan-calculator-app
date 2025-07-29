@@ -20,6 +20,7 @@ import ComprehensiveSummary from './components/calculator/ComprehensiveSummary';
 import RepaymentSchedule from './components/calculator/RepaymentSchedule';
 import { PrepaymentSimulator, PrepaymentSavings } from './components/calculator/PrepaymentSimulator';
 import AffordabilityCalculator from './components/affordability/AffordabilityCalculator';
+import CalculationModeSwitcher from './components/calculator/CalculationModeSwitcher'; // --- IMPORT THE NEW COMPONENT ---
 
 
 // Constants & Utils
@@ -63,9 +64,7 @@ export default function App() {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
 
-    // --- FIX: Refactored theme application logic for stability ---
     useEffect(() => {
-        // This effect runs when the theme *name* changes to set up the CSS variables for both light and dark modes.
         const lightTheme = themes[themeName]?.light;
         const darkTheme = themes[themeName]?.dark;
         if (!lightTheme || !darkTheme) return;
@@ -82,22 +81,15 @@ export default function App() {
             document.head.appendChild(style);
         }
 
-        // Define CSS variables for :root (light mode) and .dark (dark mode)
         style.innerHTML = `
-            :root {
-                ${lightVars}
-            }
-            .dark {
-                ${darkVars}
-            }
+            :root { ${lightVars} }
+            .dark { ${darkVars} }
         `;
-    }, [themeName]); // Only re-runs when the theme name changes
+    }, [themeName]);
 
     useEffect(() => {
-        // This separate, simpler effect just handles toggling the class on the html element.
         document.documentElement.classList.toggle('dark', isDarkMode);
-        localStorage.setItem('isDarkMode', isDarkMode);
-    }, [isDarkMode]); // Only re-runs when dark mode is toggled
+    }, [isDarkMode]);
 
 
     // Effect to show/hide report
@@ -317,8 +309,15 @@ export default function App() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                             <div className="lg:col-span-2">
                                 <Card className={`${d.p} h-full flex flex-col`}>
-                                   {/* Calculation Mode Switch and Inputs */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 flex-grow pt-6">
+                                    {/* --- ADD THE NEW COMPONENT HERE --- */}
+                                    <CalculationModeSwitcher
+                                        calculationMode={calculationMode}
+                                        setCalculationMode={(mode) => {
+                                            setCalculationMode(mode);
+                                            setFormErrors({});
+                                        }}
+                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 flex-grow">
                                         <div className="flex flex-col h-full">
                                             <div className="space-y-4">
                                                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
@@ -335,7 +334,7 @@ export default function App() {
                                         <div className="space-y-4 flex flex-col">
                                             <div>
                                                 <InputWithValidation id="emiPaymentDay" name="emiPaymentDay" label="EMI Payment Day" value={emiPaymentDay} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emiPaymentDay} icon="Calendar" type="text" maxLength="2" inputMode="numeric" helpText="Day from 1-31. Adjusted for shorter months." />
-                                                <div><label htmlFor="startDate" className="block font-medium mb-1.5 text-on-surface-variant">Loan Start Date</label><div className="relative input-field rounded-xl"><div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><i className="fas fa-calendar"></i></div><input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl" /></div></div>
+                                                <div><label htmlFor="startDate" className="block font-medium mb-1.5 text-on-surface-variant">Loan Start Date</label><div className="relative input-field rounded-xl"><div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><icons.Calendar className="text-on-surface-variant" /></div><input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl" /></div></div>
                                             </div>
                                             <PrepaymentSimulator prepayments={prepayments} setPrepayments={setPrepayments} formatCurrency={formatCurrency} />
                                             <PrepaymentSavings results={calculationResults} formatCurrency={formatCurrency} />
