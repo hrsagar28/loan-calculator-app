@@ -37,6 +37,44 @@ body::before {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* --- FIX: Restore the CSS Variable Bridge --- */
+/* This section explicitly links Tailwind's classes to our dynamic CSS variables */
+.bg-primary { background-color: var(--color-primary); }
+.text-on-primary { color: var(--color-onPrimary); }
+.bg-primary-container { background-color: var(--color-primaryContainer); }
+.text-on-primary-container { color: var(--color-onPrimaryContainer); }
+.bg-secondary-container { background-color: var(--color-secondaryContainer); }
+.text-on-secondary-container { color: var(--color-onSecondaryContainer); }
+.bg-tertiary { background-color: var(--color-tertiary); }
+.text-on-tertiary { color: var(--color-onTertiary); }
+.bg-tertiary-container { background-color: var(--color-tertiaryContainer); }
+.text-on-tertiary-container { color: var(--color-onTertiaryContainer); }
+.bg-error-container { background-color: var(--color-errorContainer); }
+.text-on-error-container { color: var(--color-onErrorContainer); }
+.bg-surface { background-color: var(--color-surface); }
+.text-on-surface { color: var(--color-onSurface); }
+.bg-surface-variant { background-color: var(--color-surfaceVariant); }
+.text-on-surface-variant { color: var(--color-onSurfaceVariant); }
+.bg-surface-container { background-color: var(--color-surfaceContainer); }
+.bg-surface-container-high { background-color: var(--color-surfaceContainerHigh); }
+.bg-surface-container-highest { background-color: var(--color-surfaceContainerHighest); }
+.border-outline { border-color: var(--color-outline); }
+.border-outline-variant { border-color: var(--color-outlineVariant); }
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-secondary); }
+.text-tertiary { color: var(--color-tertiary); }
+.text-error { color: var(--color-error); }
+.stroke-primary { stroke: var(--color-primary); }
+.stroke-secondary { stroke: var(--color-secondary); }
+.stroke-tertiary { stroke: var(--color-tertiary); }
+.stroke-error { stroke: var(--color-error); }
+.bg-error { background-color: var(--color-error); }
+.stop-primary { stop-color: var(--color-primary); }
+.stop-tertiary { stop-color: var(--color-tertiary); }
+.bg-inverse-surface { background-color: var(--color-inverseSurface); }
+.text-inverse-on-surface { color: var(--color-onInverseSurface); }
+.fill-on-surface-variant { fill: var(--color-onSurfaceVariant); }
+
 /* Reusable Component Styles */
 .input-field {
   background-color: var(--color-surfaceContainer);
