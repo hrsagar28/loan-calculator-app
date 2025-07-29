@@ -69,17 +69,26 @@ const AffordabilityCalculator = ({
         }
     };
 
+    // --- FIX: This handler now correctly updates all inputs ---
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         const rawValue = value.replace(/,/g, '');
-        const stateSetters = {
-            monthlyIncome: setMonthlyIncome,
-            monthlyExpenses: setMonthlyExpenses,
-            interestRate: setInterestRate,
-        };
-        if (stateSetters[name]) {
-             if (!/^[0-9.]*$/.test(rawValue)) return;
-             stateSetters[name](rawValue);
+
+        // Only allow numbers and a single decimal point
+        if (!/^\d*\.?\d*$/.test(rawValue)) return;
+
+        switch (name) {
+            case 'monthlyIncome':
+                setMonthlyIncome(rawValue);
+                break;
+            case 'monthlyExpenses':
+                setMonthlyExpenses(rawValue);
+                break;
+            case 'interestRate':
+                setInterestRate(value); // Keep as string to allow for decimal input
+                break;
+            default:
+                break;
         }
     };
     

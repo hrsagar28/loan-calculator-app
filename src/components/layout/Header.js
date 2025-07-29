@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { icons } from '../../constants/icons';
 import Tooltip from '../common/Tooltip';
 
@@ -31,7 +31,7 @@ const Header = ({
         if (callback) callback(...args);
     };
 
-    // --- FIX: This is the missing effect to position the slider ---
+    // --- FIX: This effect handles the sliding animation for the mode switcher ---
     useLayoutEffect(() => {
         const updateSliderPosition = () => {
             const activeButton = appMode === 'calculator'
@@ -46,20 +46,32 @@ const Header = ({
             }
         };
 
-        updateSliderPosition(); // Run on mount and when appMode changes
+        updateSliderPosition();
 
         const observer = new ResizeObserver(updateSliderPosition);
         const container = appModeSwitchContainerRef.current;
-        if (container) {
-            observer.observe(container);
-        }
-
+        if (container) observer.observe(container);
+        
         return () => {
-            if (container) {
-                observer.unobserve(container);
-            }
+            if (container) observer.unobserve(container);
         };
-    }, [appMode]); // Rerun when the appMode changes
+    }, [appMode]);
+
+    // --- FIX: This effect handles showing/hiding the header on scroll ---
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setHeaderVisible(false);
+            } else {
+                setHeaderVisible(true);
+            }
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
 
     return (
         <header className={`sticky top-0 z-30 p-2 md:p-4 -mx-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
