@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { icons } from '../../constants/icons';
 import Tooltip from '../common/Tooltip';
 
@@ -22,17 +22,44 @@ const Header = ({
     const [headerVisible, setHeaderVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
-
     const handleNameChange = (e) => {
         setClientName(e.target.value);
     };
 
-    // A simple haptic feedback trigger
     const handleInteractiveClick = (callback) => (...args) => {
         if (navigator.vibrate) navigator.vibrate(20);
         if (callback) callback(...args);
     };
 
+    // --- FIX: This is the missing effect to position the slider ---
+    useLayoutEffect(() => {
+        const updateSliderPosition = () => {
+            const activeButton = appMode === 'calculator'
+                ? calculatorModeButtonRef.current
+                : affordabilityModeButtonRef.current;
+
+            if (activeButton) {
+                setAppModeSliderStyle({
+                    left: `${activeButton.offsetLeft}px`,
+                    width: `${activeButton.offsetWidth}px`,
+                });
+            }
+        };
+
+        updateSliderPosition(); // Run on mount and when appMode changes
+
+        const observer = new ResizeObserver(updateSliderPosition);
+        const container = appModeSwitchContainerRef.current;
+        if (container) {
+            observer.observe(container);
+        }
+
+        return () => {
+            if (container) {
+                observer.unobserve(container);
+            }
+        };
+    }, [appMode]); // Rerun when the appMode changes
 
     return (
         <header className={`sticky top-0 z-30 p-2 md:p-4 -mx-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
