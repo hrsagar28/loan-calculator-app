@@ -20,11 +20,12 @@ import ComprehensiveSummary from './components/calculator/ComprehensiveSummary';
 import RepaymentSchedule from './components/calculator/RepaymentSchedule';
 import { PrepaymentSimulator, PrepaymentSavings } from './components/calculator/PrepaymentSimulator';
 import AffordabilityCalculator from './components/affordability/AffordabilityCalculator';
-import CalculationModeSwitcher from './components/calculator/CalculationModeSwitcher'; // --- IMPORT THE NEW COMPONENT ---
+import CalculationModeSwitcher from './components/calculator/CalculationModeSwitcher';
 
 
 // Constants & Utils
 import { themes } from './constants/themes';
+import { icons } from './constants/icons'; // --- THIS LINE WAS MISSING ---
 import { formatInputValue, formatCurrency } from './utils/formatters';
 import { generatePdf } from './utils/pdfGenerator';
 
@@ -309,7 +310,6 @@ export default function App() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                             <div className="lg:col-span-2">
                                 <Card className={`${d.p} h-full flex flex-col`}>
-                                    {/* --- ADD THE NEW COMPONENT HERE --- */}
                                     <CalculationModeSwitcher
                                         calculationMode={calculationMode}
                                         setCalculationMode={(mode) => {
