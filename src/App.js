@@ -266,7 +266,7 @@ export default function App() {
     const fontSizes = { base: 'text-base', sm: 'text-sm', lg: 'text-lg' };
 
     return (
-        <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col`}>
+        <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col overflow-x-hidden`}>
             <Header
                 clientName={clientName}
                 setClientName={setClientName}

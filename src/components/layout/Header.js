@@ -72,7 +72,7 @@ const Header = ({
     }, [lastScrollY]);
 
     return (
-        <header className={`sticky top-0 z-30 p-2 md:p-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <header className={`sticky top-0 z-30 p-2 md:p-4 -mx-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
             <div className="max-w-8xl mx-auto p-3 lg:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-x-4 gap-y-3 bg-surface/80 border-glass glass-effect shadow-glass">
 
                 <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-[200px]">
