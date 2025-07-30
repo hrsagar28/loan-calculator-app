@@ -85,16 +85,18 @@ const Header = ({
                         </h1>
                         {isEditingClientName ? (
                             <div className="flex items-baseline whitespace-nowrap">
-                                <span className="text-lg font-semibold text-secondary mr-2">Client: M/s</span>
+                                <span className="text-lg font-semibold text-secondary mr-2">Client:</span>
+                                <span className="text-xl font-bold text-on-surface-variant mr-1">M/s</span>
                                 <input
                                     ref={clientNameInputRef}
                                     type="text"
                                     value={clientName}
                                     onChange={handleNameChange}
-                                    onBlur={() => { if (clientName) setIsEditingClientName(false); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' && clientName) setIsEditingClientName(false); }}
+                                    onBlur={() => setIsEditingClientName(false)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') setIsEditingClientName(false); }}
                                     placeholder="Client Name"
                                     className="text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b border-dashed border-outline"
+                                    autoFocus
                                 />
                             </div>
                         ) : (
