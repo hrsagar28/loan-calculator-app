@@ -29,11 +29,9 @@ const RepaymentSchedule = ({ results, isOpen, setIsOpen, formatCurrency, density
     return (
         <div className={`transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl">
-                <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-4 text-left">
+                <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-4 text-left text-on-surface">
                     <h3 className="text-[1.5em] md:text-[1.75em] font-semibold text-on-surface font-display">Repayment Schedule</h3>
-                    <div className="text-on-surface">
-    <ChevronDownIcon isOpen={isOpen} />
-</div> />
+                    <ChevronDownIcon isOpen={isOpen} />
                 </button>
                 <div className={`collapsible-content ${isOpen ? 'open' : ''}`}>
                     <div>
@@ -60,7 +58,7 @@ const RepaymentSchedule = ({ results, isOpen, setIsOpen, formatCurrency, density
                                                 aria-expanded={expandedYear === fy.year}
                                                 className="cursor-pointer font-bold transition-all duration-300 hover:scale-[1.02] bg-surface-container-highest focus:outline-none focus:ring-2 focus:ring-primary">
                                                 <td className={`${d.tableCell} rounded-l-2xl text-left`}>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 text-on-surface">
                                                         <ChevronDownIcon isOpen={expandedYear === fy.year} />
                                                         {fy.year}
                                                     </div>
@@ -94,7 +92,7 @@ const RepaymentSchedule = ({ results, isOpen, setIsOpen, formatCurrency, density
                                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleYear(fy.year); }}
                                             tabIndex="0"
                                             aria-expanded={expandedYear === fy.year}
-                                            className="p-3 font-bold flex justify-between items-center rounded-2xl bg-surface-container-highest cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary">
+                                            className="p-3 font-bold flex justify-between items-center rounded-2xl bg-surface-container-highest cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary text-on-surface">
                                             <span>{fy.year}</span>
                                             <ChevronDownIcon isOpen={expandedYear === fy.year} />
                                         </div>
