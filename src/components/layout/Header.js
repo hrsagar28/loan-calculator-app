@@ -26,7 +26,7 @@ const Header = ({
 
     const handleNameInputKeyDown = (e) => {
         if (e.key === 'Enter') {
-            e.target.blur(); // This removes focus from the input
+            e.target.blur();
         }
     };
 
@@ -96,7 +96,9 @@ const Header = ({
                                 onChange={handleNameChange}
                                 onKeyDown={handleNameInputKeyDown}
                                 placeholder="Client Name"
-                                className="text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b border-transparent focus:border-primary transition-colors duration-300"
+                                className={`text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b transition-colors duration-300 ${
+                                    !clientName ? 'border-dashed border-outline' : 'border-transparent'
+                                } focus:border-solid focus:border-primary`}
                             />
                         </div>
                     </div>
