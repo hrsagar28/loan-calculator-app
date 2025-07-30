@@ -24,6 +24,12 @@ const Header = ({
         setClientName(e.target.value);
     };
 
+    const handleNameInputKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.target.blur();
+        }
+    };
+
     const handleInteractiveClick = (callback) => (...args) => {
         if (navigator.vibrate) navigator.vibrate(20);
         if (callback) callback(...args);
@@ -88,8 +94,9 @@ const Header = ({
                                 type="text"
                                 value={clientName}
                                 onChange={handleNameChange}
+                                onKeyDown={handleNameInputKeyDown}
                                 placeholder="Client Name"
-                                className="text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b border-dashed border-outline"
+                                className="text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b border-dashed border-outline focus:border-solid focus:border-primary"
                             />
                         </div>
                     </div>
