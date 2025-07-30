@@ -209,3 +209,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .table-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-primary);
 }
+
+/* For the full-screen mobile schedule view */
+.mobile-schedule-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-background);
+    z-index: 40; /* Ensure it's above other content */
+    display: flex;
+    flex-direction: column;
+    animation: slide-in 0.3s var(--ease-expressive);
+}
+
+@keyframes slide-in {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}

@@ -8,10 +8,10 @@ const AnimatedIcon = ({ isToggled, OnIcon, OffIcon }) => (
     </div>
 );
 
+// MODIFIED: Simplified Header component
 const Header = ({
-    clientName, setClientName, appMode, setAppMode, isDarkMode, setIsDarkMode,
-    setIsSettingsOpen, handleReset, handleExportCsv, handleDownloadPdf,
-    pdfStatus, areScriptsReady, hasResults
+    appMode, setAppMode, isDarkMode, setIsDarkMode,
+    setIsSettingsOpen, handleReset
 }) => {
     const appModeSwitchContainerRef = useRef(null);
     const calculatorModeButtonRef = useRef(null);
@@ -19,16 +19,6 @@ const Header = ({
     const [appModeSliderStyle, setAppModeSliderStyle] = useState({});
     const [headerVisible, setHeaderVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
-
-    const handleNameChange = (e) => {
-        setClientName(e.target.value);
-    };
-
-    const handleNameInputKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            e.target.blur();
-        }
-    };
 
     const handleInteractiveClick = (callback) => (...args) => {
         if (navigator.vibrate) navigator.vibrate(20);
@@ -78,30 +68,15 @@ const Header = ({
     return (
         <header className={`sticky top-0 z-30 p-2 md:p-4 -mx-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
             <div className="max-w-8xl mx-auto p-3 lg:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-x-4 gap-y-3 bg-surface/80 border-glass glass-effect shadow-glass">
-
-                <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-[200px]">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center bg-primary text-on-primary shadow-md flex-shrink-0">
-                        <icons.LoanLogo className="w-6 h-6 md:w-8 md:h-8" />
+                
+                {/* NEW: Centered Title and Logo */}
+                <div className="flex-1 flex justify-center items-center flex-col">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-on-primary shadow-md">
+                        <icons.LoanLogo className="w-8 h-8" />
                     </div>
-                    <div className="min-w-0">
-                        <h1 className="text-[1.5em] sm:text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight">
-                            Loan Advisory Tool
-                        </h1>
-                        <div className="flex items-baseline whitespace-nowrap">
-                            <span className="text-lg font-semibold text-secondary mr-2">Client:</span>
-                            <span className="text-xl font-bold text-on-surface-variant mr-1">M/s</span>
-                            <input
-                                type="text"
-                                value={clientName}
-                                onChange={handleNameChange}
-                                onKeyDown={handleNameInputKeyDown}
-                                placeholder="Client Name"
-                                className={`text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b transition-colors duration-300 ${
-                                    !clientName ? 'border-dashed border-outline' : 'border-transparent'
-                                } focus:border-solid focus:border-primary`}
-                            />
-                        </div>
-                    </div>
+                    <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight mt-1">
+                        Loan Advisory Tool
+                    </h1>
                 </div>
 
                 <div className="w-full lg:w-auto order-last lg:order-none flex justify-center">
@@ -112,13 +87,7 @@ const Header = ({
                     </div>
                 </div>
                 
-                <div className="flex items-center gap-1 md:gap-2 text-on-surface-variant">
-                    {hasResults && appMode === 'calculator' && (
-                        <>
-                            <Tooltip text="Export CSV"><button onClick={handleInteractiveClick(handleExportCsv)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Csv className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
-                            <Tooltip text="Download PDF"><button onClick={handleInteractiveClick(handleDownloadPdf)} disabled={pdfStatus === 'generating' || !areScriptsReady} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Download className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
-                        </>
-                    )}
+                <div className="flex-1 flex justify-end items-center gap-1 md:gap-2 text-on-surface-variant">
                     <Tooltip text="Reset Data"><button aria-label="Reset Data" onClick={handleInteractiveClick(handleReset)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.RotateCcw className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
                     <Tooltip text="Settings"><button aria-label="Settings" onClick={handleInteractiveClick(() => setIsSettingsOpen(true))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Settings className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
                     <Tooltip text={isDarkMode ? "Light Mode" : "Dark Mode"}><button aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"} onClick={handleInteractiveClick(() => setIsDarkMode(!isDarkMode))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><AnimatedIcon isToggled={isDarkMode} OnIcon={() => <icons.Sun className="w-5 h-5 md:w-6 md:h-6" />} OffIcon={() => <icons.Moon className="w-5 h-5 md:w-6 md:h-6" />} /></button></Tooltip>

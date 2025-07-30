@@ -7,30 +7,23 @@ import useLoanCalculator from './hooks/useLoanCalculator';
 // Components
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import Card from './components/common/Card';
-import InputWithValidation from './components/common/InputWithValidation';
-import ExpressiveSlider from './components/common/ExpressiveSlider';
+import ControlSidebar from './components/layout/ControlSidebar'; // NEW: Control sidebar
+import DashboardView from './components/layout/DashboardView'; // NEW: Dashboard view for summary and charts
+import RepaymentSchedule from './components/calculator/RepaymentSchedule';
+import AffordabilityCalculator from './components/affordability/AffordabilityCalculator';
 import Snackbar from './components/common/Snackbar';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import SettingsModal from './components/common/SettingsModal';
-import LoanBreakdownChart from './components/charts/LoanBreakdownChart';
-import BalanceDeclineChart from './components/charts/BalanceDeclineChart';
-import CumulativeChart from './components/charts/CumulativeChart';
-import ComprehensiveSummary from './components/calculator/ComprehensiveSummary';
-import RepaymentSchedule from './components/calculator/RepaymentSchedule';
-import { PrepaymentSimulator, PrepaymentSavings } from './components/calculator/PrepaymentSimulator';
-import AffordabilityCalculator from './components/affordability/AffordabilityCalculator';
-import CalculationModeSwitcher from './components/calculator/CalculationModeSwitcher';
 
 
 // Constants & Utils
 import { themes } from './constants/themes';
-import { icons } from './constants/icons'; // --- THIS LINE WAS MISSING ---
+import { icons } from './constants/icons';
 import { formatInputValue, formatCurrency } from './utils/formatters';
 import { generatePdf } from './utils/pdfGenerator';
 
 export default function App() {
-    // App-level state
+    // App-level state (theming, etc.) remains the same
     const [isDarkMode, setIsDarkMode] = usePersistentState('isDarkMode', false);
     const [themeName, setThemeName] = usePersistentState('themeName', 'Crystal Graphite');
     const [layoutDensity, setLayoutDensity] = usePersistentState('layoutDensity', 'comfortable');
@@ -51,19 +44,45 @@ export default function App() {
     const [formErrors, setFormErrors] = useState({});
     const [activeInput, setActiveInput] = useState(null);
     const [calculationMode, setCalculationMode] = useState('rate');
-    const [showReport, setShowReport] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isScheduleOpen, setIsScheduleOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [notification, setNotification] = useState({ message: '', type: 'success' });
     const [pdfStatus, setPdfStatus] = useState('idle');
     const [areScriptsReady, setAreScriptsReady] = useState(false);
+    
+    // NEW: State to manage the main content view (dashboard or schedule)
+    const [mainView, setMainView] = useState('dashboard'); // 'dashboard' or 'schedule'
+    // NEW: State for mobile tab view
+    const [mobileTab, setMobileTab] = useState('inputs'); // 'inputs' or 'results'
+
 
     // Custom Hook for Calculations
     const { calculationResults, processedResult } = useLoanCalculator({
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
+    
+    // MODIFIED: This now also controls the main view and mobile tab
+    useEffect(() => {
+        if (appMode !== 'calculator' || !processedResult) {
+            setMainView('dashboard');
+            return;
+        };
+        setIsLoading(true);
+        if (processedResult?.error) {
+            setIsLoading(false);
+            setMainView('dashboard');
+        } else if (processedResult?.data) {
+            const timer = setTimeout(() => {
+                setIsLoading(false);
+                setMobileTab('results'); // Switch to results on mobile after calculation
+            }, 300);
+            return () => clearTimeout(timer);
+        } else {
+            setIsLoading(false);
+        }
+    }, [processedResult, appMode]);
+
 
     useEffect(() => {
         const lightTheme = themes[themeName]?.light;
@@ -92,30 +111,6 @@ export default function App() {
         document.documentElement.classList.toggle('dark', isDarkMode);
     }, [isDarkMode]);
 
-
-    // Effect to show/hide report
-    useEffect(() => {
-        if (appMode !== 'calculator' || !processedResult) {
-            setShowReport(false);
-            return;
-        };
-        setIsLoading(true);
-        if (processedResult?.error) {
-            setIsLoading(false);
-            setShowReport(false);
-        } else if (processedResult?.data) {
-            const timer = setTimeout(() => {
-                setShowReport(true);
-                setIsLoading(false);
-            }, 300);
-            return () => clearTimeout(timer);
-        } else {
-            setIsLoading(false);
-            setShowReport(false);
-        }
-    }, [processedResult, appMode]);
-
-    // PDF Script Loading
      useEffect(() => {
         const loadScript = (src, id) => new Promise((resolve, reject) => {
             if (document.getElementById(id)) {
@@ -199,6 +194,13 @@ export default function App() {
         const error = validateField(name, value);
         setFormErrors(prev => ({ ...prev, [name]: error }));
     };
+    
+    // NEW: Manual calculate function for mobile FAB
+    const handleCalculate = () => {
+      // This is a dummy state update to re-trigger the useLoanCalculator hook.
+      // A more robust solution might involve a dedicated "calculate" function from the hook.
+      setLoanAmount(String(loanAmount)); 
+    }
 
     const handleReset = () => {
         setIsResetModalOpen(true);
@@ -213,7 +215,8 @@ export default function App() {
         setEmiPaymentDay('5');
         setClientName('');
         setPrepayments([]);
-        setShowReport(false);
+        setMainView('dashboard');
+        setMobileTab('inputs');
         setFormErrors({});
         setIsResetModalOpen(false);
         showNotification('All data has been reset.');
@@ -265,25 +268,27 @@ export default function App() {
     const d = densityClasses[layoutDensity];
     const fontSizes = { base: 'text-base', sm: 'text-sm', lg: 'text-lg' };
 
+    const controlSidebarProps = {
+      clientName, setClientName, loanAmount, handleInputChange, activeInput, formatInputValue,
+      handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
+      setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
+      prepayments, setPrepayments, formatCurrency, d
+    };
+
+    const hasValidResults = calculationResults && !processedResult?.error;
+
+
     return (
         <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col overflow-x-hidden`}>
             <Header
-                clientName={clientName}
-                setClientName={setClientName}
                 appMode={appMode}
                 setAppMode={setAppMode}
                 isDarkMode={isDarkMode}
                 setIsDarkMode={setIsDarkMode}
                 setIsSettingsOpen={setIsSettingsOpen}
                 handleReset={handleReset}
-                handleExportCsv={handleExportCsv}
-                handleDownloadPdf={handleDownloadPdf}
-                pdfStatus={pdfStatus}
-                areScriptsReady={areScriptsReady}
-                hasResults={!!calculationResults && !processedResult.error}
             />
-
-            <main className="p-2 sm:p-4 lg:p-8 pt-0 view-container flex-grow flex flex-col">
+             <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6">
                 <SettingsModal
                     isOpen={isSettingsOpen}
                     onClose={() => setIsSettingsOpen(false)}
@@ -305,80 +310,75 @@ export default function App() {
                     <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
                 </ConfirmationModal>
 
+                {/* NEW: Mobile Tab Navigation */}
+                <div className="lg:hidden w-full flex-shrink-0">
+                    <div className="flex bg-surface-container rounded-full border border-outline-variant p-1">
+                        <button onClick={() => setMobileTab('inputs')} className={`w-1/2 py-2 font-semibold rounded-full ${mobileTab === 'inputs' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Inputs</button>
+                        <button onClick={() => setMobileTab('results')} className={`w-1/2 py-2 font-semibold rounded-full ${mobileTab === 'results' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Results</button>
+                    </div>
+                </div>
+
+                {/* MODIFIED: Conditional rendering for sidebar and affordability calculator */}
                 {appMode === 'calculator' ? (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                            <div className="lg:col-span-2">
-                                <Card className={`${d.p} h-full flex flex-col`}>
-                                    <CalculationModeSwitcher
-                                        calculationMode={calculationMode}
-                                        setCalculationMode={(mode) => {
-                                            setCalculationMode(mode);
-                                            setFormErrors({});
-                                        }}
-                                    />
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 flex-grow">
-                                        <div className="flex flex-col h-full">
-                                            <div className="space-y-4">
-                                                <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
-                                                {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" />}
-                                                {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}
-                                                {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="Percent" type="text" maxLength="5" inputMode="decimal" />}
-                                            </div>
-                                             {calculationResults && !processedResult.error && (
-                                                <div className="mt-auto">
-                                                    <ComprehensiveSummary results={calculationResults} formatCurrency={formatCurrency} interestRate={interestRate} calculationMode={calculationMode} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="space-y-4 flex flex-col">
-                                            <div>
-                                                <InputWithValidation id="emiPaymentDay" name="emiPaymentDay" label="EMI Payment Day" value={emiPaymentDay} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emiPaymentDay} icon="Calendar" type="text" maxLength="2" inputMode="numeric" helpText="Day from 1-31. Adjusted for shorter months." />
-                                                <div><label htmlFor="startDate" className="block font-medium mb-1.5 text-on-surface-variant">Loan Start Date</label><div className="relative input-field rounded-xl"><div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><icons.Calendar className="text-on-surface-variant" /></div><input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl text-on-surface" /></div></div>
-                                            </div>
-                                            <PrepaymentSimulator prepayments={prepayments} setPrepayments={setPrepayments} formatCurrency={formatCurrency} />
-                                            <PrepaymentSavings results={calculationResults} formatCurrency={formatCurrency} />
-                                            {processedResult && processedResult.error && <div className="mt-6 p-4 rounded-2xl bg-error-container text-on-error-container"><p className="font-bold">Error</p><p>{processedResult.error}</p></div>}
-                                        </div>
-                                    </div>
-                                </Card>
-                            </div>
-                            {calculationResults && !processedResult.error && (
-                                <div className="lg:col-span-1">
-                                    <Card className="p-4 h-full flex flex-col justify-around">
-                                        <LoanBreakdownChart principal={parseFloat(String(loanAmount).replace(/,/g, ''))} interest={calculationResults.totalInterest} isVisible={showReport} />
-                                        <div className="border-b border-outline-variant my-2"></div>
-                                        <BalanceDeclineChart schedule={calculationResults.monthlySchedule} isVisible={showReport} formatCurrency={formatCurrency} maxChartValue={parseFloat(String(loanAmount).replace(/,/g, ''))} />
-                                        <div className="border-b border-outline-variant my-2"></div>
-                                        <CumulativeChart schedule={calculationResults.monthlySchedule} isVisible={showReport} formatCurrency={formatCurrency} maxChartValue={calculationResults.totalPayment} />
-                                    </Card>
-                                </div>
-                            )}
-                        </div>
-                        {isLoading ? (
-                            <div className="animate-pulse space-y-8"><div className="h-52 rounded-2xl bg-surface-container-highest"></div><div className="h-96 rounded-2xl bg-surface-container-highest"></div></div>
-                        ) : calculationResults && !processedResult.error ? (
+                  <>
+                    <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
+                      <ControlSidebar {...controlSidebarProps} />
+                    </div>
+                    
+                    <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
+                        {mainView === 'dashboard' ? (
+                            <DashboardView
+                                results={calculationResults}
+                                isLoading={isLoading}
+                                hasError={processedResult?.error}
+                                errorMessage={processedResult?.error}
+                                onShowSchedule={() => setMainView('schedule')}
+                                formatCurrency={formatCurrency}
+                                loanAmount={loanAmount}
+                                interestRate={interestRate}
+                                calculationMode={calculationMode}
+                                density={d}
+                            />
+                        ) : (
                             <RepaymentSchedule
                                 results={calculationResults}
-                                isOpen={isScheduleOpen}
-                                setIsOpen={setIsScheduleOpen}
+                                onBack={() => setMainView('dashboard')}
                                 formatCurrency={formatCurrency}
                                 density={d}
-                                isVisible={showReport}
+                                handleExportCsv={handleExportCsv}
+                                handleDownloadPdf={handleDownloadPdf}
+                                pdfStatus={pdfStatus}
+                                areScriptsReady={areScriptsReady}
                             />
-                        ) : null}
+                        )}
                     </div>
+                  </>
                 ) : (
-                   <AffordabilityCalculator
-                        setLoanAmount={setLoanAmount}
-                        setEmi={setEmi}
-                        setAppMode={setAppMode}
-                        setCalculationMode={setCalculationMode}
-                        showNotification={showNotification}
-                        density={d}
-                    />
+                   <div className="w-full">
+                     <AffordabilityCalculator
+                          setLoanAmount={setLoanAmount}
+                          setEmi={setEmi}
+                          setAppMode={setAppMode}
+                          setCalculationMode={setCalculationMode}
+                          showNotification={showNotification}
+                          density={d}
+                      />
+                   </div>
                 )}
             </main>
+
+            {/* NEW: Mobile FAB */}
+            {appMode === 'calculator' && mobileTab === 'inputs' && (
+                <div className="lg:hidden fixed bottom-6 right-6 z-40">
+                    <button 
+                        onClick={handleCalculate}
+                        className="bg-primary text-on-primary rounded-2xl shadow-lg w-16 h-16 flex items-center justify-center"
+                    >
+                        <icons.TrendingUp className="w-8 h-8"/>
+                    </button>
+                </div>
+            )}
+
 
             <Footer />
 
