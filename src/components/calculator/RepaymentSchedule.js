@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { icons } from '../../constants/icons'; // Ensure icons are imported
+import { icons } from '../../constants/icons';
 
 const ChevronDownIcon = ({ isOpen }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ease-expressive ${isOpen ? 'rotate-180' : ''}`}>
@@ -7,7 +7,6 @@ const ChevronDownIcon = ({ isOpen }) => (
     </svg>
 );
 
-// MODIFIED: For the focus view
 const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExportCsv, handleDownloadPdf, pdfStatus, areScriptsReady }) => {
     const [expandedYear, setExpandedYear] = useState(null);
     const [closingYear, setClosingYear] = useState(null);
@@ -29,10 +28,9 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
     const d = density;
 
     return (
-        <div className="animate-cascade-in">
-            <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl">
-                 {/* NEW: Header for the focus view */}
-                <div className="p-4 flex flex-wrap justify-between items-center gap-4">
+        <div className="animate-cascade-in h-full">
+            <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl h-full flex flex-col">
+                <div className="p-4 flex flex-wrap justify-between items-center gap-4 flex-shrink-0">
                     <button onClick={onBack} className="flex items-center gap-2 font-semibold text-on-surface hover:text-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                         Back to Dashboard
@@ -42,12 +40,11 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                         <button onClick={handleDownloadPdf} disabled={pdfStatus === 'generating' || !areScriptsReady} className="px-4 py-2 font-semibold rounded-full bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity active:scale-95 flex items-center gap-2"><icons.Download className="w-5 h-5"/> <span>PDF</span></button>
                     </div>
                 </div>
-                <div className="p-4 pt-0">
+                <div className="p-4 pt-0 flex-shrink-0">
                   <h3 className="text-[1.75em] font-semibold text-on-surface font-display">Repayment Schedule</h3>
                 </div>
 
-                <div className={`max-h-[70vh] overflow-y-auto table-scrollbar ${d.tableP}`}>
-                    {/* The rest of your table/mobile view logic remains the same */}
+                <div className={`flex-grow overflow-y-auto table-scrollbar ${d.tableP}`}>
                     <table className="w-full text-on-surface-variant border-separate border-spacing-y-1 hidden md:table table-fixed">
                         <thead className="text-[0.8em] uppercase sticky top-0 z-10">
                             <tr>

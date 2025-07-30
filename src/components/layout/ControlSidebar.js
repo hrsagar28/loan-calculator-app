@@ -12,17 +12,6 @@ const ControlSidebar = ({
     setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
     prepayments, setPrepayments, formatCurrency, d
 }) => {
-
-    const handleNameChange = (e) => {
-        setClientName(e.target.value);
-    };
-
-    const handleNameInputKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            e.target.blur();
-        }
-    };
-
     return (
         <Card className={`${d.p} h-full flex flex-col`}>
              <div className="flex items-baseline whitespace-nowrap mb-4">
@@ -31,8 +20,8 @@ const ControlSidebar = ({
                 <input
                     type="text"
                     value={clientName}
-                    onChange={handleNameChange}
-                    onKeyDown={handleNameInputKeyDown}
+                    onChange={(e) => setClientName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                     placeholder="Client Name"
                     className={`text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b transition-colors duration-300 ${
                         !clientName ? 'border-dashed border-outline' : 'border-transparent'
@@ -44,7 +33,7 @@ const ControlSidebar = ({
                 calculationMode={calculationMode}
                 setCalculationMode={setCalculationMode}
             />
-            <div className="space-y-4 flex-grow flex flex-col">
+            <div className="flex-grow flex flex-col space-y-4 overflow-y-auto -mr-2 pr-2">
                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
                 {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" />}
                 {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}

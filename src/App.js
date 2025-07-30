@@ -7,8 +7,8 @@ import useLoanCalculator from './hooks/useLoanCalculator';
 // Components
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import ControlSidebar from './components/layout/ControlSidebar'; // NEW: Control sidebar
-import DashboardView from './components/layout/DashboardView'; // NEW: Dashboard view for summary and charts
+import ControlSidebar from './components/layout/ControlSidebar';
+import DashboardView from './components/layout/DashboardView';
 import RepaymentSchedule from './components/calculator/RepaymentSchedule';
 import AffordabilityCalculator from './components/affordability/AffordabilityCalculator';
 import Snackbar from './components/common/Snackbar';
@@ -23,7 +23,7 @@ import { formatInputValue, formatCurrency } from './utils/formatters';
 import { generatePdf } from './utils/pdfGenerator';
 
 export default function App() {
-    // App-level state (theming, etc.) remains the same
+    // App-level state
     const [isDarkMode, setIsDarkMode] = usePersistentState('isDarkMode', false);
     const [themeName, setThemeName] = usePersistentState('themeName', 'Crystal Graphite');
     const [layoutDensity, setLayoutDensity] = usePersistentState('layoutDensity', 'comfortable');
@@ -62,7 +62,6 @@ export default function App() {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
     
-    // MODIFIED: This now also controls the main view and mobile tab
     useEffect(() => {
         if (appMode !== 'calculator' || !processedResult) {
             setMainView('dashboard');
@@ -194,11 +193,8 @@ export default function App() {
         const error = validateField(name, value);
         setFormErrors(prev => ({ ...prev, [name]: error }));
     };
-    
-    // NEW: Manual calculate function for mobile FAB
+
     const handleCalculate = () => {
-      // This is a dummy state update to re-trigger the useLoanCalculator hook.
-      // A more robust solution might involve a dedicated "calculate" function from the hook.
       setLoanAmount(String(loanAmount)); 
     }
 
@@ -275,9 +271,6 @@ export default function App() {
       prepayments, setPrepayments, formatCurrency, d
     };
 
-    const hasValidResults = calculationResults && !processedResult?.error;
-
-
     return (
         <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col overflow-x-hidden`}>
             <Header
@@ -288,7 +281,7 @@ export default function App() {
                 setIsSettingsOpen={setIsSettingsOpen}
                 handleReset={handleReset}
             />
-             <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6">
+            <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6">
                 <SettingsModal
                     isOpen={isSettingsOpen}
                     onClose={() => setIsSettingsOpen(false)}
@@ -310,15 +303,24 @@ export default function App() {
                     <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
                 </ConfirmationModal>
 
-                {/* NEW: Mobile Tab Navigation */}
-                <div className="lg:hidden w-full flex-shrink-0">
-                    <div className="flex bg-surface-container rounded-full border border-outline-variant p-1">
-                        <button onClick={() => setMobileTab('inputs')} className={`w-1/2 py-2 font-semibold rounded-full ${mobileTab === 'inputs' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Inputs</button>
-                        <button onClick={() => setMobileTab('results')} className={`w-1/2 py-2 font-semibold rounded-full ${mobileTab === 'results' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Results</button>
+                <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container rounded-full border border-outline-variant">
+                    <div className="flex relative">
+                         <div
+                            className="absolute top-0 bottom-0 bg-primary rounded-full shadow-md transition-all duration-500 ease-expressive"
+                            style={{
+                                left: mobileTab === 'inputs' ? '0%' : '50%',
+                                width: '50%',
+                            }}
+                        />
+                        <button onClick={() => setMobileTab('inputs')} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                            <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
+                        </button>
+                        <button onClick={() => setMobileTab('results')} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                             <span className={mobileTab === 'results' ? 'text-on-primary' : 'text-on-surface-variant'}>Results</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* MODIFIED: Conditional rendering for sidebar and affordability calculator */}
                 {appMode === 'calculator' ? (
                   <>
                     <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
@@ -367,12 +369,11 @@ export default function App() {
                 )}
             </main>
 
-            {/* NEW: Mobile FAB */}
             {appMode === 'calculator' && mobileTab === 'inputs' && (
                 <div className="lg:hidden fixed bottom-6 right-6 z-40">
                     <button 
                         onClick={handleCalculate}
-                        className="bg-primary text-on-primary rounded-2xl shadow-lg w-16 h-16 flex items-center justify-center"
+                        className="bg-primary text-on-primary rounded-2xl shadow-lg w-16 h-16 flex items-center justify-center transform active:scale-90 transition-transform duration-200"
                     >
                         <icons.TrendingUp className="w-8 h-8"/>
                     </button>
