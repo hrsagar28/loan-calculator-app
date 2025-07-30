@@ -8,6 +8,7 @@ import { icons } from '../../constants/icons';
 const DashboardView = ({ results, isLoading, hasError, errorMessage, onShowSchedule, formatCurrency, loanAmount, interestRate, calculationMode, density }) => {
     const d = density;
     const hasValidResults = results && !hasError;
+    const hasPrepaymentSavings = results && (results.interestSaved > 0 || results.tenureReduced > 0);
 
     if (isLoading) {
         return <div className="animate-pulse h-full rounded-2xl bg-surface-container-highest"></div>;
@@ -37,10 +38,24 @@ const DashboardView = ({ results, isLoading, hasError, errorMessage, onShowSched
 
     return (
         <div className="space-y-6">
-            <Card className={`${d.p}`}>
-                 <ComprehensiveSummary results={results} formatCurrency={formatCurrency} interestRate={interestRate} calculationMode={calculationMode} />
-                 <PrepaymentSavings results={results} formatCurrency={formatCurrency} />
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <Card className={`lg:col-span-3 ${d.p}`}>
+                    <ComprehensiveSummary results={results} formatCurrency={formatCurrency} interestRate={interestRate} calculationMode={calculationMode} />
+                </Card>
+                <div className="lg:col-span-2">
+                    {hasPrepaymentSavings ? (
+                        <Card className={`${d.p} h-full`}>
+                            <PrepaymentSavings results={results} formatCurrency={formatCurrency} />
+                        </Card>
+                    ) : (
+                         <Card className={`${d.p} h-full flex flex-col items-center justify-center text-center`}>
+                             <icons.Lightbulb className="w-12 h-12 text-tertiary opacity-50 mb-3"/>
+                             <h3 className="font-bold text-on-surface">Prepayment Savings</h3>
+                             <p className="text-sm text-on-surface-variant">Add a prepayment to see your potential savings.</p>
+                         </Card>
+                    )}
+                </div>
+            </div>
             <Card className={`${d.p}`}>
                 <UnifiedChartView
                     results={results}

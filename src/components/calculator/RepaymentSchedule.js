@@ -28,7 +28,7 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
     const d = density;
 
     return (
-        <div className="animate-cascade-in h-full">
+        <div className="animate-cascade-in h-full flex flex-col">
             <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl h-full flex flex-col">
                 <div className="p-4 flex flex-wrap justify-between items-center gap-4 flex-shrink-0">
                     <button onClick={onBack} className="flex items-center gap-2 font-semibold text-on-surface hover:text-primary">
@@ -44,7 +44,7 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                   <h3 className="text-[1.75em] font-semibold text-on-surface font-display">Repayment Schedule</h3>
                 </div>
 
-                <div className={`flex-grow overflow-y-auto table-scrollbar ${d.tableP}`}>
+                <div className={`flex-grow overflow-y-auto table-scrollbar ${d.tableP}`} style={{ maxHeight: 'calc(100vh - 250px)' }}>
                     <table className="w-full text-on-surface-variant border-separate border-spacing-y-1 hidden md:table table-fixed">
                         <thead className="text-[0.8em] uppercase sticky top-0 z-10">
                             <tr>

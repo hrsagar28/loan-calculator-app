@@ -49,6 +49,7 @@ export default function App() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [isPrepaymentModalOpen, setIsPrepaymentModalOpen] = useState(false);
+    const [isAffordabilityModalOpen, setIsAffordabilityModalOpen] = useState(false);
     const [notification, setNotification] = useState({ message: '', type: 'success' });
     const [pdfStatus, setPdfStatus] = useState('idle');
     const [areScriptsReady, setAreScriptsReady] = useState(false);
@@ -277,6 +278,7 @@ export default function App() {
       handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
       setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
       onOpenPrepaymentModal: () => setIsPrepaymentModalOpen(true),
+      onOpenAffordabilityModal: () => setIsAffordabilityModalOpen(true),
       prepayments,
       d
     };
@@ -311,8 +313,6 @@ export default function App() {
     return (
         <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col overflow-x-hidden`}>
             <Header
-                appMode={appMode}
-                setAppMode={setAppMode}
                 isDarkMode={isDarkMode}
                 setIsDarkMode={setIsDarkMode}
                 setIsSettingsOpen={setIsSettingsOpen}
@@ -348,6 +348,17 @@ export default function App() {
                     formatCurrency={formatCurrency}
                 />
 
+                <AffordabilityCalculator
+                    isOpen={isAffordabilityModalOpen}
+                    onClose={() => setIsAffordabilityModalOpen(false)}
+                    setLoanAmount={setLoanAmount}
+                    setEmi={setEmi}
+                    setCalculationMode={setCalculationMode}
+                    showNotification={showNotification}
+                    density={d}
+                />
+
+
                 <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container rounded-full border border-outline-variant">
                     <div className="flex relative">
                          <div
@@ -366,55 +377,40 @@ export default function App() {
                     </div>
                 </div>
 
-                {appMode === 'calculator' ? (
-                  <>
-                    <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
-                      <ControlSidebar {...controlSidebarProps} />
-                       <div className="lg:hidden">
-                           <KeyResultsPeek />
-                       </div>
+                <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
+                    <ControlSidebar {...controlSidebarProps} />
+                    <div className="lg:hidden">
+                        <KeyResultsPeek />
                     </div>
-                    
-                    <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
-                        {mainView === 'dashboard' ? (
-                            <DashboardView
-                                results={calculationResults}
-                                isLoading={isLoading}
-                                hasError={processedResult?.error}
-                                errorMessage={processedResult?.error}
-                                onShowSchedule={() => setMainView('schedule')}
-                                formatCurrency={formatCurrency}
-                                loanAmount={loanAmount}
-                                interestRate={interestRate}
-                                calculationMode={calculationMode}
-                                density={d}
-                            />
-                        ) : (
-                            <RepaymentSchedule
-                                results={calculationResults}
-                                onBack={() => setMainView('dashboard')}
-                                formatCurrency={formatCurrency}
-                                density={d}
-                                handleExportCsv={handleExportCsv}
-                                handleDownloadPdf={handleDownloadPdf}
-                                pdfStatus={pdfStatus}
-                                areScriptsReady={areScriptsReady}
-                            />
-                        )}
-                    </div>
-                  </>
-                ) : (
-                   <div className="w-full">
-                     <AffordabilityCalculator
-                          setLoanAmount={setLoanAmount}
-                          setEmi={setEmi}
-                          setAppMode={setAppMode}
-                          setCalculationMode={setCalculationMode}
-                          showNotification={showNotification}
-                          density={d}
-                      />
-                   </div>
-                )}
+                </div>
+                
+                <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
+                    {mainView === 'dashboard' ? (
+                        <DashboardView
+                            results={calculationResults}
+                            isLoading={isLoading}
+                            hasError={processedResult?.error}
+                            errorMessage={processedResult?.error}
+                            onShowSchedule={() => setMainView('schedule')}
+                            formatCurrency={formatCurrency}
+                            loanAmount={loanAmount}
+                            interestRate={interestRate}
+                            calculationMode={calculationMode}
+                            density={d}
+                        />
+                    ) : (
+                        <RepaymentSchedule
+                            results={calculationResults}
+                            onBack={() => setMainView('dashboard')}
+                            formatCurrency={formatCurrency}
+                            density={d}
+                            handleExportCsv={handleExportCsv}
+                            handleDownloadPdf={handleDownloadPdf}
+                            pdfStatus={pdfStatus}
+                            areScriptsReady={areScriptsReady}
+                        />
+                    )}
+                </div>
             </main>
 
             <Footer />

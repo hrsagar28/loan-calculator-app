@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { icons } from '../../constants/icons';
 import Tooltip from '../common/Tooltip';
 
@@ -9,13 +9,9 @@ const AnimatedIcon = ({ isToggled, OnIcon, OffIcon }) => (
 );
 
 const Header = ({
-    appMode, setAppMode, isDarkMode, setIsDarkMode,
+    isDarkMode, setIsDarkMode,
     setIsSettingsOpen, handleReset
 }) => {
-    const appModeSwitchContainerRef = useRef(null);
-    const calculatorModeButtonRef = useRef(null);
-    const affordabilityModeButtonRef = useRef(null);
-    const [appModeSliderStyle, setAppModeSliderStyle] = useState({});
     const [headerVisible, setHeaderVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -23,31 +19,6 @@ const Header = ({
         if (navigator.vibrate) navigator.vibrate(20);
         if (callback) callback(...args);
     };
-
-    useLayoutEffect(() => {
-        const updateSliderPosition = () => {
-            const activeButton = appMode === 'calculator'
-                ? calculatorModeButtonRef.current
-                : affordabilityModeButtonRef.current;
-
-            if (activeButton) {
-                setAppModeSliderStyle({
-                    left: `${activeButton.offsetLeft}px`,
-                    width: `${activeButton.offsetWidth}px`,
-                });
-            }
-        };
-
-        updateSliderPosition();
-
-        const observer = new ResizeObserver(updateSliderPosition);
-        const container = appModeSwitchContainerRef.current;
-        if (container) observer.observe(container);
-        
-        return () => {
-            if (container) observer.unobserve(container);
-        };
-    }, [appMode]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -77,14 +48,6 @@ const Header = ({
                     </h1>
                 </div>
 
-                <div className="w-full lg:w-auto order-last lg:order-none flex justify-center">
-                    <div ref={appModeSwitchContainerRef} className="relative flex rounded-full p-1 bg-surface-container-high border border-outline-variant shadow-inner">
-                        <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...appModeSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
-                        <button ref={calculatorModeButtonRef} onClick={handleInteractiveClick(() => { setAppMode('calculator'); })} className={`relative px-4 py-1.5 font-semibold rounded-full transition-colors ${appMode === 'calculator' ? 'text-on-primary' : 'text-on-surface-variant'}`}>Loan Calculator</button>
-                        <button ref={affordabilityModeButtonRef} onClick={handleInteractiveClick(() => { setAppMode('affordability'); })} className={`relative px-4 py-1.5 font-semibold rounded-full transition-colors ${appMode === 'affordability' ? 'text-on-primary' : 'text-on-surface-variant'}`}>Affordability</button>
-                    </div>
-                </div>
-                
                 <div className="flex-1 flex justify-end items-center gap-1 md:gap-2 text-on-surface-variant">
                     <Tooltip text="Reset Data"><button aria-label="Reset Data" onClick={handleInteractiveClick(handleReset)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.RotateCcw className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
                     <Tooltip text="Settings"><button aria-label="Settings" onClick={handleInteractiveClick(() => setIsSettingsOpen(true))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Settings className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>

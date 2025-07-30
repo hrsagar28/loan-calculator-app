@@ -4,14 +4,14 @@ import { formatInputValue, formatCurrency } from '../../utils/formatters';
 import { icons } from '../../constants/icons';
 
 // Child components from common folder
-import Card from '../common/Card';
 import InputWithValidation from '../common/InputWithValidation';
 import ExpressiveSlider from '../common/ExpressiveSlider';
 
 const AffordabilityCalculator = ({
+    isOpen,
+    onClose,
     setLoanAmount,
     setEmi,
-    setAppMode,
     setCalculationMode,
     showNotification,
     density
@@ -64,8 +64,8 @@ const AffordabilityCalculator = ({
             setLoanAmount(String(affordabilityResult.loanAmount));
             setEmi(String(affordabilityResult.emi));
             setCalculationMode('rate'); // Switch main calculator to 'rate' mode
-            setAppMode('calculator');   // Switch back to the main calculator view
             showNotification('Affordable loan amount applied!');
+            onClose();
         }
     };
 
@@ -95,11 +95,14 @@ const AffordabilityCalculator = ({
     const handleFocus = (e) => setActiveInput(e.target.name);
     const handleBlur = (e) => setActiveInput(null);
 
+    if (!isOpen) return null;
+
     const d = density;
 
     return (
-        <div className="max-w-4xl mx-auto w-full">
-            <Card className={`${d.p} grid md:grid-cols-2 gap-8 items-center`}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="rounded-2xl shadow-glass w-full max-w-4xl bg-surface-container-high flex flex-col glass-effect border-glass" onClick={e => e.stopPropagation()}>
+               <div className={`${d.p} grid md:grid-cols-2 gap-8 items-center`}>
                 <div className="space-y-4">
                     <h2 className="text-[1.75em] font-semibold text-on-surface font-display text-center md:text-left">Affordability Calculator</h2>
                     <InputWithValidation id="monthlyIncome" name="monthlyIncome" label="Your Monthly Income" value={activeInput === 'monthlyIncome' ? monthlyIncome : formatInputValue(monthlyIncome)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
@@ -110,18 +113,18 @@ const AffordabilityCalculator = ({
                     <InputWithValidation id="interestRate" name="interestRate" label="Assumed Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="Percent" type="text" maxLength="5" inputMode="decimal" />
                 </div>
 
-                <div className="min-h-[220px] flex flex-col items-center justify-center transition-all duration-300 ease-in-out p-4 rounded-2xl bg-surface-container-high">
+                <div className="min-h-[220px] flex flex-col items-center justify-center transition-all duration-300 ease-in-out p-4 rounded-2xl bg-surface-container">
                     {affordabilityResult ? (
                         <div className="text-center space-y-4 w-full animate-cascade-in">
                             {affordabilityResult.error ? (
                                 <p className="text-error font-medium p-4">{affordabilityResult.error}</p>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="bg-surface-container p-4 rounded-xl">
+                                    <div className="bg-surface-container-low p-4 rounded-xl">
                                         <p className="text-sm text-on-surface-variant">You can likely afford a loan of about:</p>
                                         <p className="text-4xl font-bold text-primary font-display">{formatCurrency(affordabilityResult.loanAmount)}</p>
                                     </div>
-                                    <div className="bg-surface-container p-3 rounded-xl">
+                                    <div className="bg-surface-container-low p-3 rounded-xl">
                                         <p className="text-sm text-on-surface-variant">with an estimated EMI of</p>
                                         <p className="text-2xl font-bold text-tertiary font-display">~{formatCurrency(affordabilityResult.emi)}</p>
                                     </div>
@@ -140,7 +143,8 @@ const AffordabilityCalculator = ({
                         <p className="text-[0.8em] text-on-surface-variant text-center pt-4 max-w-xs mx-auto">*Note: Calculation assumes 45% of your disposable income can be safely allocated to your EMI.</p>
                     )}
                 </div>
-            </Card>
+            </div>
+            </div>
         </div>
     );
 };

@@ -3,14 +3,13 @@ import Card from '../common/Card';
 import InputWithValidation from '../common/InputWithValidation';
 import ExpressiveSlider from '../common/ExpressiveSlider';
 import CalculationModeSwitcher from '../calculator/CalculationModeSwitcher';
-import { PrepaymentSavings } from '../calculator/PrepaymentSimulator';
 import { icons } from '../../constants/icons';
 
 const ControlSidebar = ({
     clientName, setClientName, loanAmount, handleInputChange, activeInput, formatInputValue,
     handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
     setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
-    onOpenPrepaymentModal, prepayments, d
+    onOpenPrepaymentModal, onOpenAffordabilityModal, prepayments, d
 }) => {
     return (
         <Card className={`${d.p} h-full flex flex-col`}>
@@ -24,7 +23,7 @@ const ControlSidebar = ({
                     onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                     placeholder="Client Name"
                     className={`text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b-2 transition-colors duration-300 ${
-                        activeInput === 'clientName' || clientName ? 'border-primary' : 'border-dashed border-outline'
+                        activeInput === 'clientName' ? 'border-primary' : 'border-transparent'
                     } focus:border-solid focus:border-primary`}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
@@ -38,6 +37,8 @@ const ControlSidebar = ({
             />
             <div className="flex-grow flex flex-col space-y-4 overflow-y-auto -mr-2 pr-2">
                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
+                <button onClick={onOpenAffordabilityModal} className="text-sm text-primary hover:underline text-left -mt-2">Not sure how much you can afford?</button>
+
                 {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" />}
                 {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}
                 {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="Percent" type="text" maxLength="5" inputMode="decimal" />}
