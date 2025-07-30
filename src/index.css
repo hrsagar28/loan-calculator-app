@@ -173,3 +173,9 @@ input[type="date"] {
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+
+/* --- FIX: Hide native date picker icon to show custom SVG icon --- */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
