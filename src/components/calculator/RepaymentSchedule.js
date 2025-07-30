@@ -31,7 +31,9 @@ const RepaymentSchedule = ({ results, isOpen, setIsOpen, formatCurrency, density
             <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl">
                 <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center p-4 text-left">
                     <h3 className="text-[1.5em] md:text-[1.75em] font-semibold text-on-surface font-display">Repayment Schedule</h3>
-                    <ChevronDownIcon isOpen={isOpen} />
+                    <div className="text-on-surface">
+    <ChevronDownIcon isOpen={isOpen} />
+</div> />
                 </button>
                 <div className={`collapsible-content ${isOpen ? 'open' : ''}`}>
                     <div>
