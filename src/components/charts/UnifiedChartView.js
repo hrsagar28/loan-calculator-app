@@ -13,13 +13,13 @@ const UnifiedChartView = ({ results, formatCurrency, loanAmount }) => {
     };
 
     return (
-        <div>
-            <div className="flex justify-center mb-4 border-b border-outline-variant">
+        <div className="flex flex-col h-full">
+            <div className="flex justify-center mb-4 border-b border-outline-variant flex-shrink-0">
                 <button onClick={() => setActiveChart('breakdown')} className={`px-4 py-2 font-semibold border-b-2 ${activeChart === 'breakdown' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}>Breakdown</button>
                 <button onClick={() => setActiveChart('balance')} className={`px-4 py-2 font-semibold border-b-2 ${activeChart === 'balance' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}>Balance Decline</button>
                 <button onClick={() => setActiveChart('cumulative')} className={`px-4 py-2 font-semibold border-b-2 ${activeChart === 'cumulative' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}>Cumulative</button>
             </div>
-            <div>
+            <div className="flex-grow flex items-center justify-center">
                 {chartComponents[activeChart]}
             </div>
         </div>

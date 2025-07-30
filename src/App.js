@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // Hooks
 import usePersistentState from './hooks/usePersistentState';
@@ -14,6 +14,7 @@ import AffordabilityCalculator from './components/affordability/AffordabilityCal
 import Snackbar from './components/common/Snackbar';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import SettingsModal from './components/common/SettingsModal';
+import { PrepaymentModal } from './components/calculator/PrepaymentSimulator';
 
 
 // Constants & Utils
@@ -47,6 +48,7 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [isPrepaymentModalOpen, setIsPrepaymentModalOpen] = useState(false);
     const [notification, setNotification] = useState({ message: '', type: 'success' });
     const [pdfStatus, setPdfStatus] = useState('idle');
     const [areScriptsReady, setAreScriptsReady] = useState(false);
@@ -58,7 +60,7 @@ export default function App() {
 
 
     // Custom Hook for Calculations
-    const { calculationResults, processedResult } = useLoanCalculator({
+    const { calculationResults, processedResult, performCalculation } = useLoanCalculator({
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
     
@@ -81,6 +83,16 @@ export default function App() {
             setIsLoading(false);
         }
     }, [processedResult, appMode]);
+
+    // Debounced calculation
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (appMode === 'calculator') {
+                performCalculation();
+            }
+        }, 500); // 500ms delay
+        return () => clearTimeout(handler);
+    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, appMode, performCalculation]);
 
 
     useEffect(() => {
@@ -193,11 +205,7 @@ export default function App() {
         const error = validateField(name, value);
         setFormErrors(prev => ({ ...prev, [name]: error }));
     };
-
-    const handleCalculate = () => {
-      setLoanAmount(String(loanAmount)); 
-    }
-
+    
     const handleReset = () => {
         setIsResetModalOpen(true);
     };
@@ -268,8 +276,37 @@ export default function App() {
       clientName, setClientName, loanAmount, handleInputChange, activeInput, formatInputValue,
       handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
       setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
-      prepayments, setPrepayments, formatCurrency, d
+      onOpenPrepaymentModal: () => setIsPrepaymentModalOpen(true),
+      prepayments,
+      d
     };
+
+    const KeyResultsPeek = () => {
+        if (!calculationResults || isLoading || processedResult?.error) return null;
+        return (
+            <div className="mt-4 p-4 bg-surface-container rounded-2xl animate-cascade-in">
+                <h3 className="text-lg font-bold text-on-surface-variant mb-2">Key Results</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <p className="text-on-surface-variant">Calculated Rate</p>
+                        <p className="font-bold text-primary text-lg">{calculationResults.calculatedRate.toFixed(2)}%</p>
+                    </div>
+                    <div>
+                        <p className="text-on-surface-variant">EMI</p>
+                        <p className="font-bold text-primary text-lg">{formatCurrency(calculationResults.calculatedEmi)}</p>
+                    </div>
+                    <div>
+                        <p className="text-on-surface-variant">Total Interest</p>
+                        <p className="font-bold text-tertiary text-lg">{formatCurrency(calculationResults.totalInterest)}</p>
+                    </div>
+                     <div>
+                        <p className="text-on-surface-variant">Tenure</p>
+                        <p className="font-bold text-on-surface text-lg">{`${Math.floor(calculationResults.monthlySchedule.length / 12)}y ${calculationResults.monthlySchedule.length % 12}m`}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col overflow-x-hidden`}>
@@ -303,6 +340,14 @@ export default function App() {
                     <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
                 </ConfirmationModal>
 
+                <PrepaymentModal 
+                    isOpen={isPrepaymentModalOpen}
+                    onClose={() => setIsPrepaymentModalOpen(false)}
+                    prepayments={prepayments}
+                    setPrepayments={setPrepayments}
+                    formatCurrency={formatCurrency}
+                />
+
                 <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container rounded-full border border-outline-variant">
                     <div className="flex relative">
                          <div
@@ -325,6 +370,9 @@ export default function App() {
                   <>
                     <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
                       <ControlSidebar {...controlSidebarProps} />
+                       <div className="lg:hidden">
+                           <KeyResultsPeek />
+                       </div>
                     </div>
                     
                     <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
@@ -368,18 +416,6 @@ export default function App() {
                    </div>
                 )}
             </main>
-
-            {appMode === 'calculator' && mobileTab === 'inputs' && (
-                <div className="lg:hidden fixed bottom-6 right-6 z-40">
-                    <button 
-                        onClick={handleCalculate}
-                        className="bg-primary text-on-primary rounded-2xl shadow-lg w-16 h-16 flex items-center justify-center transform active:scale-90 transition-transform duration-200"
-                    >
-                        <icons.TrendingUp className="w-8 h-8"/>
-                    </button>
-                </div>
-            )}
-
 
             <Footer />
 

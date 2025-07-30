@@ -3,14 +3,14 @@ import Card from '../common/Card';
 import InputWithValidation from '../common/InputWithValidation';
 import ExpressiveSlider from '../common/ExpressiveSlider';
 import CalculationModeSwitcher from '../calculator/CalculationModeSwitcher';
-import { PrepaymentSimulator } from '../calculator/PrepaymentSimulator';
+import { PrepaymentSavings } from '../calculator/PrepaymentSimulator';
 import { icons } from '../../constants/icons';
 
 const ControlSidebar = ({
     clientName, setClientName, loanAmount, handleInputChange, activeInput, formatInputValue,
     handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
     setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
-    prepayments, setPrepayments, formatCurrency, d
+    onOpenPrepaymentModal, prepayments, d
 }) => {
     return (
         <Card className={`${d.p} h-full flex flex-col`}>
@@ -23,9 +23,12 @@ const ControlSidebar = ({
                     onChange={(e) => setClientName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                     placeholder="Client Name"
-                    className={`text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b transition-colors duration-300 ${
-                        !clientName ? 'border-dashed border-outline' : 'border-transparent'
+                    className={`text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b-2 transition-colors duration-300 ${
+                        activeInput === 'clientName' || clientName ? 'border-primary' : 'border-dashed border-outline'
                     } focus:border-solid focus:border-primary`}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    name="clientName"
                 />
             </div>
             
@@ -48,7 +51,15 @@ const ControlSidebar = ({
                   </div>
                 </div>
                 
-                <PrepaymentSimulator prepayments={prepayments} setPrepayments={setPrepayments} formatCurrency={formatCurrency} />
+                 <div className="pt-4 border-t border-outline-variant mt-auto">
+                    <button onClick={onOpenPrepaymentModal} className="w-full flex justify-between items-center p-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest transition-colors">
+                        <div className="text-left">
+                            <h3 className="font-semibold text-on-surface">Prepayment Simulator</h3>
+                            <p className="text-sm text-on-surface-variant">{prepayments.length} prepayments added</p>
+                        </div>
+                        <icons.Add />
+                    </button>
+                </div>
             </div>
         </Card>
     );
