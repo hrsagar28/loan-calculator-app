@@ -13,8 +13,6 @@ const Header = ({
     setIsSettingsOpen, handleReset, handleExportCsv, handleDownloadPdf,
     pdfStatus, areScriptsReady, hasResults
 }) => {
-    const [isEditingClientName, setIsEditingClientName] = useState(!clientName);
-    const clientNameInputRef = useRef(null);
     const appModeSwitchContainerRef = useRef(null);
     const calculatorModeButtonRef = useRef(null);
     const affordabilityModeButtonRef = useRef(null);
@@ -83,30 +81,17 @@ const Header = ({
                         <h1 className="text-[1.5em] sm:text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight">
                             Loan Advisory Tool
                         </h1>
-                        {isEditingClientName ? (
-                            <div className="flex items-baseline whitespace-nowrap">
-                                <span className="text-lg font-semibold text-secondary mr-2">Client:</span>
-                                <span className="text-xl font-bold text-on-surface-variant mr-1">M/s</span>
-                                <input
-                                    ref={clientNameInputRef}
-                                    type="text"
-                                    value={clientName}
-                                    onChange={handleNameChange}
-                                    onBlur={() => setIsEditingClientName(false)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') setIsEditingClientName(false); }}
-                                    placeholder="Client Name"
-                                    className="text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b border-dashed border-outline"
-                                    autoFocus
-                                />
-                            </div>
-                        ) : (
-                            <div onClick={() => setIsEditingClientName(true)} className="flex items-baseline cursor-pointer whitespace-nowrap">
-                                <span className="text-lg font-semibold text-secondary mr-2">Client:</span>
-                                <p className="text-xl font-bold text-on-surface-variant truncate">
-                                    {clientName ? `M/s ${clientName}` : "(Click to add)"}
-                                </p>
-                            </div>
-                        )}
+                        <div className="flex items-baseline whitespace-nowrap">
+                            <span className="text-lg font-semibold text-secondary mr-2">Client:</span>
+                            <span className="text-xl font-bold text-on-surface-variant mr-1">M/s</span>
+                            <input
+                                type="text"
+                                value={clientName}
+                                onChange={handleNameChange}
+                                placeholder="Client Name"
+                                className="text-xl font-bold text-on-surface-variant bg-transparent focus:outline-none w-full border-b border-dashed border-outline"
+                            />
+                        </div>
                     </div>
                 </div>
 
