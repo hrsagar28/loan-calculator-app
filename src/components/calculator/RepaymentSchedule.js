@@ -51,24 +51,24 @@ const RepaymentSchedule = ({ results, isOpen, setIsOpen, formatCurrency, density
                                 <tbody>
                                     {results.financialYearBreakdown.map((fy) => (
                                         <React.Fragment key={fy.year}>
-                                            <tr
-                                                onClick={() => toggleYear(fy.year)}
-                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleYear(fy.year); }}
-                                                tabIndex="0"
-                                                aria-expanded={expandedYear === fy.year}
-                                                className="cursor-pointer font-bold transition-all duration-300 hover:scale-[1.02] bg-surface-container-highest focus:outline-none focus:ring-2 focus:ring-primary">
-                                                <td className={`${d.tableCell} rounded-l-2xl text-left`}>
-                                                    <div className="flex items-center gap-2 text-on-surface">
-                                                        <ChevronDownIcon isOpen={expandedYear === fy.year} />
-                                                        {fy.year}
-                                                    </div>
-                                                </td>
-                                                <td className={`${d.tableCell} text-left`}>-</td>
-                                                <td className={`${d.tableCell} text-right text-on-primary-container`}>{formatCurrency(fy.principal)}</td>
-                                                <td className={`${d.tableCell} text-right text-on-tertiary-container`}>{formatCurrency(fy.interest)}</td>
-                                                <td className={`${d.tableCell} text-right text-on-secondary-container`}>{formatCurrency(fy.totalPrepayment)}</td>
-                                                <td className={`${d.tableCell} text-right rounded-r-2xl`}>{formatCurrency(fy.closingBalance)}</td>
-                                            </tr>
+<tr
+    onClick={() => toggleYear(fy.year)}
+    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleYear(fy.year); }}
+    tabIndex="0"
+    aria-expanded={expandedYear === fy.year}
+    className="cursor-pointer font-bold transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary">
+    <td className={`${d.tableCell} rounded-l-2xl text-left bg-surface-container-highest`}>
+        <div className="flex items-center gap-2 text-on-surface">
+            <ChevronDownIcon isOpen={expandedYear === fy.year} />
+            {fy.year}
+        </div>
+    </td>
+    <td className={`${d.tableCell} text-left bg-surface-container-highest`}>-</td>
+    <td className={`${d.tableCell} text-right text-on-primary-container bg-surface-container-highest`}>{formatCurrency(fy.principal)}</td>
+    <td className={`${d.tableCell} text-right text-on-tertiary-container bg-surface-container-highest`}>{formatCurrency(fy.interest)}</td>
+    <td className={`${d.tableCell} text-right text-on-secondary-container bg-surface-container-highest`}>{formatCurrency(fy.totalPrepayment)}</td>
+    <td className={`${d.tableCell} text-right rounded-r-2xl bg-surface-container-highest`}>{formatCurrency(fy.closingBalance)}</td>
+</tr>
                                             {(expandedYear === fy.year || closingYear === fy.year) && fy.months.map((month, index) => (
                                                 <tr key={month.month} className={`bg-surface ${closingYear === fy.year ? 'animate-cascade-out' : 'animate-cascade-in'}`} style={{ animationDelay: `${index * 25}ms` }}>
                                                     <td className={`${d.tableCell} pl-12 rounded-l-2xl text-left`}>{month.month}</td>
