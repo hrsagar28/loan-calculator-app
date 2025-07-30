@@ -25,7 +25,7 @@ const InputWithValidation = ({ id, label, value, onChange, onFocus, onBlur, erro
                     inputMode={inputMode}
                     aria-invalid={hasError}
                     aria-describedby={`${id}-feedback`}
-                    className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl disabled:opacity-50"
+                    className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl disabled:opacity-50 text-on-surface"
                 />
             </div>
             <div id={`${id}-feedback`} aria-live="polite" className="text-[0.8em] mt-1.5 min-h-[1rem]">
