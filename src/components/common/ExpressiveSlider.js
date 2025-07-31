@@ -14,12 +14,18 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
         const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
         const rawValue = (percentage / 100) * (max - min) + min;
         const newValue = Math.round(rawValue / step) * step;
-        if (newValue !== value) onChange(newValue);
+        
+        if (newValue !== value) {
+            // Vibrate with a short, soft pulse on each step change
+            if (navigator.vibrate) navigator.vibrate(10);
+            onChange(newValue);
+        }
     }, [min, max, step, value, onChange, disabled]);
 
     const handleStart = (e) => {
         if (disabled) return;
-        handleInteractiveClick()(); // Trigger haptic feedback
+        // Trigger haptic feedback on initial touch
+        handleInteractiveClick()(); 
         setIsDragging(true);
         e.preventDefault();
         handleInteraction(e);
@@ -46,6 +52,7 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
             newValue = Math.max(min, value - step);
         }
         if (newValue !== value) {
+            if (navigator.vibrate) navigator.vibrate(10);
             onChange(newValue);
         }
     };

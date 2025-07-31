@@ -28,7 +28,7 @@ const InputWithValidation = ({ id, label, value, onChange, onFocus, onBlur, erro
                     className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl disabled:opacity-50 text-on-surface"
                 />
             </div>
-            <div id={`${id}-feedback`} aria-live="polite" className="text-[0.8em] mt-1.5 min-h-[1rem]">
+            <div id={`${id}-feedback`} aria-live="polite" className="text-[0.8em] mt-1.5 h-5">
                 {hasError ? (
                     <span className="text-error">{error}</span>
                 ) : helpText ? (

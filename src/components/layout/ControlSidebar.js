@@ -37,7 +37,7 @@ const ControlSidebar = ({
                 setCalculationMode={setCalculationMode}
                 handleInteractiveClick={handleInteractiveClick}
             />
-            <div className="flex-grow flex flex-col space-y-4 overflow-y-auto -mr-2 pr-2">
+            <div className="flex-grow flex flex-col space-y-1 overflow-y-auto -mr-2 pr-2">
                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
                 
                 <div className="p-3 flex items-center gap-3 bg-surface-container-high rounded-xl text-on-surface-variant">
@@ -61,6 +61,7 @@ const ControlSidebar = ({
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><icons.Calendar className="text-on-surface-variant" /></div>
                     <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl text-on-surface" />
                   </div>
+                  <div className="h-5" />
                 </div>
                 
                  <div className="pt-4 border-t border-outline-variant mt-auto">
