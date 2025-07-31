@@ -2,13 +2,8 @@ import React from 'react';
 import { icons } from '../../constants/icons';
 import { formatInputValue } from '../../utils/formatters';
 
-export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, formatCurrency }) => {
+export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, formatCurrency, handleInteractiveClick }) => {
     if (!isOpen) return null;
-
-    const handleInteractiveClick = (callback) => (...args) => {
-        if (navigator.vibrate) navigator.vibrate(20);
-        if (callback) callback(...args);
-    };
 
     const addPrepayment = () => {
         setPrepayments([...prepayments, { amount: '', month: '' }]);
@@ -29,7 +24,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
             <div className="rounded-2xl shadow-glass w-full max-w-lg bg-surface-container-high flex flex-col glass-effect border-glass" onClick={e => e.stopPropagation()}>
                 <div className="p-6 flex justify-between items-center border-b border-outline-variant">
                     <h2 className="text-2xl font-bold text-on-surface font-display">Prepayment Simulator</h2>
-                    <button onClick={addPrepayment} className="flex items-center gap-2 px-4 py-2 font-semibold rounded-full bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity active:scale-95">
+                    <button onClick={handleInteractiveClick(addPrepayment)} className="flex items-center gap-2 px-4 py-2 font-semibold rounded-full bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity active:scale-95">
                         <icons.Add /> Add New
                     </button>
                 </div>
@@ -95,7 +90,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                     ))}
                 </div>
                  <div className="p-4 bg-surface-container/50 flex justify-end gap-3 rounded-b-2xl">
-                    <button onClick={onClose} className="px-6 py-2.5 font-bold rounded-full bg-primary text-on-primary shadow-md hover:opacity-90 transition-opacity active:scale-95">Done</button>
+                    <button onClick={handleInteractiveClick(onClose)} className="px-6 py-2.5 font-bold rounded-full bg-primary text-on-primary shadow-md hover:opacity-90 transition-opacity active:scale-95">Done</button>
                 </div>
             </div>
         </div>

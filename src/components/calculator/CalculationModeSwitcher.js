@@ -1,16 +1,11 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
 
-const CalculationModeSwitcher = ({ calculationMode, setCalculationMode }) => {
+const CalculationModeSwitcher = ({ calculationMode, setCalculationMode, handleInteractiveClick }) => {
     const [sliderIndicatorStyle, setSliderIndicatorStyle] = useState({});
     const calcModeSwitchContainerRef = useRef(null);
     const rateButtonRef = useRef(null);
     const emiButtonRef = useRef(null);
     const tenureButtonRef = useRef(null);
-
-    const handleInteractiveClick = (callback) => (...args) => {
-        if (navigator.vibrate) navigator.vibrate(20);
-        if (callback) callback(...args);
-    };
 
     useLayoutEffect(() => {
         const updateSliderPosition = () => {
@@ -48,8 +43,8 @@ const CalculationModeSwitcher = ({ calculationMode, setCalculationMode }) => {
                         ref={mode.id === 'rate' ? rateButtonRef : mode.id === 'emi' ? emiButtonRef : tenureButtonRef}
                         onClick={handleInteractiveClick(() => {
                             setCalculationMode(mode.id);
-                            // setFormErrors({}); // This state is in App.js, so we'll pass a handler or manage it there
                         })}
+                        aria-pressed={calculationMode === mode.id}
                         className={`relative w-full py-2 font-bold rounded-full transition-colors duration-300 ${calculationMode === mode.id ? 'text-on-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
                         {mode.label}

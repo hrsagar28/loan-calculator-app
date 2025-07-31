@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children, handleInteractiveClick }) => {
     if (!isOpen) return null;
 
     return (
@@ -11,8 +11,8 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
                     <div className="text-on-surface-variant">{children}</div>
                 </div>
                 <div className="p-4 bg-surface-container/50 flex justify-end gap-3 rounded-b-2xl">
-                    <button onClick={onClose} className="px-4 py-2 font-bold rounded-full hover:bg-surface-container-highest transition-colors">Cancel</button>
-                    <button onClick={onConfirm} className="px-4 py-2 font-bold rounded-full bg-primary text-on-primary shadow-md hover:opacity-90 transition-opacity active:scale-95">Confirm</button>
+                    <button onClick={handleInteractiveClick(onClose)} className="px-4 py-2 font-bold rounded-full hover:bg-surface-container-highest transition-colors">Cancel</button>
+                    <button onClick={handleInteractiveClick(onConfirm)} className="px-4 py-2 font-bold rounded-full bg-primary text-on-primary shadow-md hover:opacity-90 transition-opacity active:scale-95">Confirm</button>
                 </div>
             </div>
         </div>

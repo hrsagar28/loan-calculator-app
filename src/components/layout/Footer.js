@@ -7,9 +7,7 @@ const Footer = () => {
                 <p className="font-display font-bold text-lg text-primary">Sagar H R & Co.</p>
                 <p className="text-sm text-on-surface-variant">Chartered Accountants</p>
                 <div className="mt-4 text-xs text-on-surface-variant/80">
-                    <p>This tool is for advisory purposes only. Please consult with a financial advisor for professional advice.</p>
-                    <p>&copy; {new Date().getFullYear()} Sagar H R & Co. All Rights Reserved.</p>
-                </div>
+                    </div>
             </div>
         </footer>
     );

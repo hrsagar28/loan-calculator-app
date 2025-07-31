@@ -147,6 +147,10 @@ export default function App() {
             });
     }, []);
 
+    const handleInteractiveClick = (callback) => (...args) => {
+        if (navigator.vibrate) navigator.vibrate(20);
+        if (callback) callback(...args);
+    };
 
     const showNotification = (message, type = 'success') => {
         setNotification({ message, type });
@@ -280,7 +284,8 @@ export default function App() {
       onOpenPrepaymentModal: () => setIsPrepaymentModalOpen(true),
       onOpenAffordabilityModal: () => setIsAffordabilityModalOpen(true),
       prepayments,
-      d
+      d,
+      handleInteractiveClick
     };
 
     const KeyResultsPeek = () => {
@@ -317,6 +322,7 @@ export default function App() {
                 setIsDarkMode={setIsDarkMode}
                 setIsSettingsOpen={setIsSettingsOpen}
                 handleReset={handleReset}
+                handleInteractiveClick={handleInteractiveClick}
             />
             <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6">
                 <SettingsModal
@@ -329,6 +335,7 @@ export default function App() {
                     setLayoutDensity={setLayoutDensity}
                     fontSize={fontSize}
                     setFontSize={setFontSize}
+                    handleInteractiveClick={handleInteractiveClick}
                 />
 
                 <ConfirmationModal
@@ -336,6 +343,7 @@ export default function App() {
                     onClose={() => setIsResetModalOpen(false)}
                     onConfirm={confirmReset}
                     title="Confirm Reset"
+                    handleInteractiveClick={handleInteractiveClick}
                 >
                     <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
                 </ConfirmationModal>
@@ -346,6 +354,7 @@ export default function App() {
                     prepayments={prepayments}
                     setPrepayments={setPrepayments}
                     formatCurrency={formatCurrency}
+                    handleInteractiveClick={handleInteractiveClick}
                 />
 
                 <AffordabilityCalculator
@@ -356,6 +365,7 @@ export default function App() {
                     setCalculationMode={setCalculationMode}
                     showNotification={showNotification}
                     density={d}
+                    handleInteractiveClick={handleInteractiveClick}
                 />
 
 
@@ -408,6 +418,7 @@ export default function App() {
                             handleDownloadPdf={handleDownloadPdf}
                             pdfStatus={pdfStatus}
                             areScriptsReady={areScriptsReady}
+                            handleInteractiveClick={handleInteractiveClick}
                         />
                     )}
                 </div>

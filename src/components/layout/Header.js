@@ -10,15 +10,10 @@ const AnimatedIcon = ({ isToggled, OnIcon, OffIcon }) => (
 
 const Header = ({
     isDarkMode, setIsDarkMode,
-    setIsSettingsOpen, handleReset
+    setIsSettingsOpen, handleReset, handleInteractiveClick
 }) => {
     const [headerVisible, setHeaderVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
-
-    const handleInteractiveClick = (callback) => (...args) => {
-        if (navigator.vibrate) navigator.vibrate(20);
-        if (callback) callback(...args);
-    };
 
     useEffect(() => {
         const handleScroll = () => {

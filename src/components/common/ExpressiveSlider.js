@@ -65,7 +65,8 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
                 aria-valuemin={min}
                 aria-valuemax={max}
                 aria-valuenow={value}
-                aria-label="Loan Tenure Slider"
+                aria-valuetext={`${value} years`}
+                aria-label="Loan Tenure"
                 className={`relative w-full h-14 flex items-center rounded-full bg-surface-container-highest cursor-pointer select-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
             >
                 <div className="flex items-center gap-3 pl-5 text-on-surface-variant w-full">

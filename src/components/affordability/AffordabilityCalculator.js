@@ -14,7 +14,8 @@ const AffordabilityCalculator = ({
     setEmi,
     setCalculationMode,
     showNotification,
-    density
+    density,
+    handleInteractiveClick
 }) => {
     // State specific to this calculator mode
     const [monthlyIncome, setMonthlyIncome] = usePersistentState('monthlyIncome', '');
@@ -128,7 +129,7 @@ const AffordabilityCalculator = ({
                                         <p className="text-sm text-on-surface-variant">with an estimated EMI of</p>
                                         <p className="text-2xl font-bold text-tertiary font-display">~{formatCurrency(affordabilityResult.emi)}</p>
                                     </div>
-                                    <button onClick={useAffordableAmount} className="w-full mt-4 py-3 font-bold rounded-full bg-primary text-on-primary shadow-lg hover:opacity-90 transition-opacity active:scale-95 flex items-center justify-center gap-2">
+                                    <button onClick={handleInteractiveClick(useAffordableAmount)} className="w-full mt-4 py-3 font-bold rounded-full bg-primary text-on-primary shadow-lg hover:opacity-90 transition-opacity active:scale-95 flex items-center justify-center gap-2">
                                         <icons.TrendingUp /> Use this Amount
                                     </button>
                                 </div>

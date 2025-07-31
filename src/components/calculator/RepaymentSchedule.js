@@ -7,7 +7,7 @@ const ChevronDownIcon = ({ isOpen }) => (
     </svg>
 );
 
-const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExportCsv, handleDownloadPdf, pdfStatus, areScriptsReady }) => {
+const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExportCsv, handleDownloadPdf, pdfStatus, areScriptsReady, handleInteractiveClick }) => {
     const [expandedYear, setExpandedYear] = useState(null);
     const [closingYear, setClosingYear] = useState(null);
 
@@ -63,10 +63,12 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                                 {results.financialYearBreakdown.map((fy) => (
                                     <React.Fragment key={fy.year}>
                                         <tr
-                                            onClick={() => toggleYear(fy.year)}
-                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleYear(fy.year); }}
+                                            onClick={handleInteractiveClick(() => toggleYear(fy.year))}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleYear(fy.year); } }}
                                             tabIndex="0"
+                                            role="button"
                                             aria-expanded={expandedYear === fy.year}
+                                            aria-controls={`fy-details-${fy.year}`}
                                             className="cursor-pointer font-bold transition-transform duration-300 hover:scale-[1.02] bg-surface-container-highest focus:outline-none focus:ring-2 focus:ring-primary rounded-2xl">
                                             <td className={`${d.tableCell} rounded-l-2xl text-left`}>
                                                 <div className="flex items-center gap-2 text-on-surface">
