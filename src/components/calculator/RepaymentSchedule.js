@@ -45,9 +45,9 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                   <h3 className="text-[1.75em] font-semibold text-on-surface font-display">Repayment Schedule</h3>
                 </div>
 
-                {/* Scrollable Container */}
-                <div className="flex-grow min-h-0 overflow-x-hidden flex flex-col">
-                    <div className={`h-full overflow-y-auto table-scrollbar ${d.tableP}`}>
+                {/* Scrollable Table Area */}
+                <div className="flex-grow min-h-0 overflow-hidden">
+                    <div className={`h-full overflow-y-auto overflow-x-hidden table-scrollbar ${d.tableP}`}>
                         <table className="w-full text-on-surface-variant border-separate border-spacing-y-1 hidden md:table table-fixed">
                             <thead className="text-[0.8em] uppercase sticky top-0 z-10">
                                 <tr>
@@ -67,7 +67,7 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleYear(fy.year); }}
                                             tabIndex="0"
                                             aria-expanded={expandedYear === fy.year}
-                                            className="cursor-pointer font-bold transition-all duration-300 hover:scale-[1.02] bg-surface-container-highest focus:outline-none focus:ring-2 focus:ring-primary rounded-2xl">
+                                            className="cursor-pointer font-bold transition-transform duration-300 hover:scale-[1.02] bg-surface-container-highest focus:outline-none focus:ring-2 focus:ring-primary rounded-2xl">
                                             <td className={`${d.tableCell} rounded-l-2xl text-left`}>
                                                 <div className="flex items-center gap-2 text-on-surface">
                                                     <ChevronDownIcon isOpen={expandedYear === fy.year} />
