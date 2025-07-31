@@ -61,7 +61,7 @@ export default function App() {
 
 
     // Custom Hook for Calculations
-    const { calculationResults, processedResult, performCalculation } = useLoanCalculator({
+    const { calculationResults, processedResult } = useLoanCalculator({
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
     
@@ -84,17 +84,6 @@ export default function App() {
             setIsLoading(false);
         }
     }, [processedResult, appMode]);
-
-    // Debounced calculation
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            if (appMode === 'calculator') {
-                performCalculation();
-            }
-        }, 500); // 500ms delay
-        return () => clearTimeout(handler);
-    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, appMode, performCalculation]);
-
 
     useEffect(() => {
         const lightTheme = themes[themeName]?.light;
