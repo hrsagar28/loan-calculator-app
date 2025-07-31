@@ -28,8 +28,8 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
     const d = density;
 
     return (
-        <div className="animate-cascade-in h-full flex flex-col">
-            <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl h-full flex flex-col">
+        <div className="animate-cascade-in h-full">
+            <div className="bg-surface border-glass shadow-glass glass-effect rounded-2xl h-full grid grid-rows-[auto_auto_1fr]">
                 {/* Header Section */}
                 <div className="p-4 flex flex-wrap justify-between items-center gap-4 flex-shrink-0">
                     <button onClick={onBack} className="flex items-center gap-2 font-semibold text-on-surface hover:text-primary">
@@ -46,8 +46,8 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                 </div>
 
                 {/* Scrollable Table Area */}
-                <div className="flex-grow min-h-0 overflow-hidden">
-                    <div className={`h-full overflow-y-auto overflow-x-hidden table-scrollbar ${d.tableP}`}>
+                <div className="min-h-0 overflow-hidden overflow-x-hidden">
+                    <div className={`h-full overflow-y-auto table-scrollbar ${d.tableP}`}>
                         <table className="w-full text-on-surface-variant border-separate border-spacing-y-1 hidden md:table table-fixed">
                             <thead className="text-[0.8em] uppercase sticky top-0 z-10">
                                 <tr>
