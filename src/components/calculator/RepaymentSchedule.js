@@ -44,7 +44,7 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
                   <h3 className="text-[1.75em] font-semibold text-on-surface font-display">Repayment Schedule</h3>
                 </div>
 
-                <div className={`flex-grow overflow-y-auto table-scrollbar ${d.tableP}`} style={{ maxHeight: 'calc(100vh - 250px)' }}>
+                <div className={`flex-grow overflow-y-auto overflow-x-hidden table-scrollbar ${d.tableP} min-h-0`}>
                     <table className="w-full text-on-surface-variant border-separate border-spacing-y-1 hidden md:table table-fixed">
                         <thead className="text-[0.8em] uppercase sticky top-0 z-10">
                             <tr>
