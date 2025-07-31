@@ -367,10 +367,10 @@ export default function App() {
                                 width: '50%',
                             }}
                         />
-                        <button onClick={() => setMobileTab('inputs')} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                        <button onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
                             <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
                         </button>
-                        <button onClick={() => setMobileTab('results')} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                        <button onClick={handleInteractiveClick(() => setMobileTab('results'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
                              <span className={mobileTab === 'results' ? 'text-on-primary' : 'text-on-surface-variant'}>Results</span>
                         </button>
                     </div>

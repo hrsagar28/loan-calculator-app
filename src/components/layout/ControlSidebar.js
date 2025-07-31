@@ -40,7 +40,7 @@ const ControlSidebar = ({
             <div className="flex-grow flex flex-col space-y-4 overflow-y-auto -mr-2 pr-2">
                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
                 
-                <div className="p-3 -mt-2 mb-2 flex items-center gap-3 bg-surface-container-high rounded-xl text-on-surface-variant">
+                <div className="p-3 flex items-center gap-3 bg-surface-container-high rounded-xl text-on-surface-variant">
                     <icons.Help className="w-4 h-4 flex-shrink-0" />
                     <p className="text-sm">
                         Not sure how much you can afford?{' '}
@@ -50,7 +50,7 @@ const ControlSidebar = ({
                     </p>
                 </div>
 
-                {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" />}
+                {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" handleInteractiveClick={handleInteractiveClick} />}
                 {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}
                 {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="Percent" type="text" maxLength="5" inputMode="decimal" />}
                 

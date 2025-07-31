@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { icons } from '../../constants/icons';
 
-const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: IconComponent }) => {
+const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: IconComponent, handleInteractiveClick = () => {} }) => {
     const sliderRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const Icon = icons[IconComponent];
@@ -19,6 +19,7 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
 
     const handleStart = (e) => {
         if (disabled) return;
+        handleInteractiveClick()(); // Trigger haptic feedback
         setIsDragging(true);
         e.preventDefault();
         handleInteraction(e);
