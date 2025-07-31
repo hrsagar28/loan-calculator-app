@@ -9,7 +9,7 @@ const ControlSidebar = ({
     clientName, setClientName, loanAmount, handleInputChange, activeInput, formatInputValue,
     handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
     setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
-    onOpenPrepaymentModal, onOpenAffordabilityModal, prepayments, d
+    onOpenPrepaymentModal, onOpenAffordabilityModal, prepayments, d, handleInteractiveClick
 }) => {
     return (
         <Card className={`${d.p} h-full flex flex-col`}>
@@ -35,6 +35,7 @@ const ControlSidebar = ({
             <CalculationModeSwitcher
                 calculationMode={calculationMode}
                 setCalculationMode={setCalculationMode}
+                handleInteractiveClick={handleInteractiveClick}
             />
             <div className="flex-grow flex flex-col space-y-4 overflow-y-auto -mr-2 pr-2">
                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
