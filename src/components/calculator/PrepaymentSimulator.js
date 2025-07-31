@@ -104,22 +104,25 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
 
 
 export const PrepaymentSavings = ({ results, formatCurrency }) => {
-    if (!results || (results.interestSaved <= 0 && results.tenureReduced <= 0)) {
-        return null;
-    }
+    const hasSavings = results && (results.interestSaved > 0 || results.tenureReduced > 0);
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto pt-4 border-t border-outline-variant">
-            {results.interestSaved > 0 && (
-                <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center">
-                    <p className="font-semibold">Interest Saved</p>
-                    <p className="font-bold text-2xl font-display">{formatCurrency(results.interestSaved)}</p>
+        <div className="mt-auto pt-4 border-t border-outline-variant">
+            <h4 className="font-bold text-on-surface mb-2">Prepayment Savings</h4>
+            {hasSavings ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center">
+                        <p className="font-semibold">Interest Saved</p>
+                        <p className="font-bold text-2xl font-display">{formatCurrency(results.interestSaved)}</p>
+                    </div>
+                    <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center">
+                        <p className="font-semibold">Tenure Reduced By</p>
+                        <p className="font-bold text-2xl font-display">{results.tenureReduced} months</p>
+                    </div>
                 </div>
-            )}
-            {results.tenureReduced > 0 && (
-                <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center">
-                    <p className="font-semibold">Tenure Reduced By</p>
-                    <p className="font-bold text-2xl font-display">{results.tenureReduced} months</p>
+            ) : (
+                <div className="text-center p-3 bg-surface-container rounded-xl text-on-surface-variant">
+                    <p>Add prepayments to see your potential savings.</p>
                 </div>
             )}
         </div>

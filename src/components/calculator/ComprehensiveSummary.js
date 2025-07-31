@@ -1,5 +1,6 @@
 import React from 'react';
 import { icons } from '../../constants/icons';
+import { PrepaymentSavings } from './PrepaymentSimulator';
 
 const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculationMode }) => {
     if (!results) return null;
@@ -30,7 +31,7 @@ const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculati
 
 
     return (
-        <div className="mt-6">
+        <div>
             <h3 className="text-[1.5em] font-semibold text-on-surface font-display mb-4 flex items-center gap-2">
                 <icons.TrendingUp className="text-primary"/> Loan Summary & Insights
             </h3>
@@ -42,6 +43,7 @@ const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculati
                     </div>
                 ))}
             </div>
+            <PrepaymentSavings results={results} formatCurrency={formatCurrency} />
         </div>
     );
 };
