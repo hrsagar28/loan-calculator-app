@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 const useLoanCalculator = (params) => {
     const {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay,
-        calculationMode, prepayments, formErrors, appMode, trigger
+        calculationMode, prepayments, formErrors, appMode
     } = params;
 
     const [calculationResults, setCalculationResults] = useState(null);
@@ -149,19 +149,10 @@ const useLoanCalculator = (params) => {
         const isDesktop = window.innerWidth >= 1024;
         if(isDesktop) {
             performCalculation();
-        } else {
-            // On mobile, only calculate when the trigger changes (FAB is clicked)
-            if (trigger > 0) {
-                performCalculation();
-            } else {
-                // Clear results on mobile if inputs change but FAB is not clicked
-                setCalculationResults(null);
-                setError(null);
-            }
         }
-    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, trigger, performCalculation]);
+    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, performCalculation]);
 
-    return { calculationResults, error, isLoading };
+    return { calculationResults, error, isLoading, performCalculation };
 };
 
 export default useLoanCalculator;

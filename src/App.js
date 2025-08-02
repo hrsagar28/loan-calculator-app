@@ -63,12 +63,12 @@ export default function App() {
     const resultsTabRef = useRef(null);
     
     // Custom Hook for Calculations
-    const { calculationResults, error, isLoading } = useLoanCalculator({
-        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, trigger: triggerCalc
+    const { calculationResults, error, isLoading, performCalculation } = useLoanCalculator({
+        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
 
     const handleCalculate = () => {
-        setTriggerCalc(c => c + 1);
+        performCalculation();
     };
     
     useEffect(() => {
