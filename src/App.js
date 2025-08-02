@@ -301,7 +301,7 @@ export default function App() {
                 {mobileTab === 'inputs' && (
                     <div className="fixed bottom-6 right-6 lg:hidden z-20">
                         <button 
-                            onClick={handleCalculate}
+                            onClick={handleInteractiveClick(handleCalculate)}
                             className="w-16 h-16 rounded-2xl bg-primary text-on-primary shadow-lg flex items-center justify-center transform active:scale-90 transition-transform duration-200 ease-expressive"
                         >
                             <icons.Calculator className="w-8 h-8"/>
