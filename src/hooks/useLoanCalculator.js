@@ -39,12 +39,18 @@ const useLoanCalculator = ({
                 else { E = P * R * Math.pow(1 + R, N) / (Math.pow(1 + R, N) - 1); }
             } else if (mode === 'tenure') {
                 if (isNaN(E) || isNaN(R) || E <= 0 || R < 0) throw new Error("Enter valid Rate & EMI for tenure calculation.");
+                if (R > 0 && (P * R) >= E) {
+                    throw new Error("EMI is too low to cover the interest. The loan will never be repaid.");
+                }
                 if (R === 0) {
                     if (E > 0) { N = P / E; }
                     else { throw new Error("EMI must be positive."); }
                 } else {
                     if (P * R >= E) throw new Error("EMI must be greater than monthly interest.");
                     N = Math.log(E / (E - P * R)) / Math.log(1 + R);
+                }
+                if (N > 360) { // 30 years * 12 months
+                    throw new Error("The calculated tenure exceeds the 30-year limit.");
                 }
             }
         } catch (e) {
