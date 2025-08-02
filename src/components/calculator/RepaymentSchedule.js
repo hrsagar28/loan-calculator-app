@@ -47,7 +47,8 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
 
                 {/* Scrollable Table Area */}
                 <div className="min-h-0 overflow-hidden overflow-x-hidden">
-                    <div className={`h-full overflow-y-auto table-scrollbar ${d.tableP}`}>
+                    {/* MODIFICATION: Added px-2 for horizontal padding */}
+                    <div className={`h-full overflow-y-auto table-scrollbar ${d.tableP} px-2`}>
                         <table className="w-full text-on-surface-variant border-separate border-spacing-y-1 hidden md:table table-fixed">
                             <thead className="text-[0.8em] uppercase sticky top-0 z-10">
                                 <tr>
