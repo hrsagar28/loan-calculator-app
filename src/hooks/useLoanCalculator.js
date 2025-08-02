@@ -49,7 +49,7 @@ const useLoanCalculator = ({
                     if (P * R >= E) throw new Error("EMI must be greater than monthly interest.");
                     N = Math.log(E / (E - P * R)) / Math.log(1 + R);
                 }
-                if (N > 360) { // 30 years * 12 months
+                 if (N > 360) { // 30 years * 12 months = 360
                     throw new Error("The calculated tenure exceeds the 30-year limit.");
                 }
             }
@@ -70,7 +70,7 @@ const useLoanCalculator = ({
 
         const prepaymentsMap = new Map(currentPrepayments.map(p => [parseInt(p.month), parseFloat(String(p.amount || 0).replace(/,/g, ''))]));
         let m = 0;
-        const maxMonths = Math.max(Math.ceil(N), 1200); // Max 100 years to prevent infinite loops
+        const maxMonths = 360; // Max 30 years to prevent infinite loops
 
         while (balance > 0.01 && m < maxMonths) {
             const paymentDate = new Date(start);
