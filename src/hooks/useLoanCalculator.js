@@ -71,7 +71,6 @@ const useLoanCalculator = (params) => {
     const performCalculation = useCallback(() => {
         setIsLoading(true);
         setError(null);
-        // Do not reset calculationResults here to avoid flickering
         
         try {
             if (
@@ -109,6 +108,15 @@ const useLoanCalculator = (params) => {
                 }
                 R = (low + high) / 2;
                 if (P * R >= E) { setCalculationResults(null); throw new Error("EMI is too low to cover monthly interest."); }
+
+                // --- NEW VALIDATION BLOCK ---
+                const calculatedAnnualRate = R * 12 * 100;
+                if (calculatedAnnualRate > 100) {
+                    setCalculationResults(null);
+                    throw new Error(`Calculated rate (${calculatedAnnualRate.toFixed(2)}%) is too high. Please check your inputs.`);
+                }
+                // --- END OF NEW BLOCK ---
+
             } else if (calculationMode === 'emi') {
                 if (R === 0) E = P / N;
                 else E = P * R * Math.pow(1 + R, N) / (Math.pow(1 + R, N) - 1);
@@ -129,10 +137,22 @@ const useLoanCalculator = (params) => {
 
             const originalTenureMonths = Math.min(Math.ceil(N), 360);
             
-            // --- Original Schedule Calculation (No Prepayments) ---
             const { schedule: originalSchedule, totalInterestPaid: originalTotalInterest } = calculateSchedule(P, R, E, originalTenureMonths, []);
             
-            // --- Schedule Calculation With Prepayments ---
+            if (calculationMode !== 'tenure' && originalSchedule.length < (parseInt(tenureYears) * 12)) {
+                const actualYears = Math.floor(originalSchedule.length / 12);
+                const actualMonths = originalSchedule.length % 12;
+                let tenureMessage = '';
+                if (actualYears > 0) {
+                    tenureMessage += `${actualYears} year${actualYears > 1 ? 's' : ''}`;
+                }
+                if (actualMonths > 0) {
+                    if (tenureMessage) tenureMessage += ' and ';
+                    tenureMessage += `${actualMonths} month${actualMonths > 1 ? 's' : ''}`;
+                }
+                throw new Error(`EMI is too high for the selected tenure. The loan will be paid off in ${tenureMessage}. Please select a shorter tenure.`);
+            }
+
             const { schedule: monthlySchedule, totalInterestPaid: totalInterestWithPrepayment } = calculateSchedule(P, R, E, originalTenureMonths, prepayments);
             
             const interestSaved = originalTotalInterest - totalInterestWithPrepayment;

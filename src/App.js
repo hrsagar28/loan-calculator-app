@@ -258,6 +258,7 @@ export default function App() {
                 <AffordabilityCalculator
                     isOpen={isAffordabilityModalOpen} onClose={() => setIsAffordabilityModalOpen(false)}
                     setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
+                    setTenureYears={setTenureYears} // Pass the setter function
                     showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
                 />
                  <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect } from 'react';
 import { icons } from '../../constants/icons';
 
 const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: IconComponent, handleInteractiveClick = () => {} }) => {
@@ -6,6 +6,20 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     const [isDragging, setIsDragging] = useState(false);
     const touchStartRef = useRef({ x: 0, y: 0 });
     const Icon = icons[IconComponent];
+    const [sliderWidth, setSliderWidth] = useState(0);
+
+    // This effect measures the slider's width to ensure the text layers align perfectly.
+    useLayoutEffect(() => {
+        const updateWidth = () => {
+            if (sliderRef.current) {
+                setSliderWidth(sliderRef.current.offsetWidth);
+            }
+        };
+        updateWidth();
+        const observer = new ResizeObserver(updateWidth);
+        observer.observe(sliderRef.current);
+        return () => observer.disconnect();
+    }, []);
     
     const getPercentage = useCallback((current) => ((current - min) / (max - min)) * 100, [min, max]);
 
@@ -101,21 +115,29 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
                 aria-valuenow={value}
                 aria-valuetext={`${value} years`}
                 aria-label="Loan Tenure"
-                className={`relative w-full h-14 flex items-center rounded-full bg-surface-container-highest cursor-pointer select-none touch-pan-y ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
+                className={`relative w-full h-14 rounded-full bg-surface-container-highest overflow-hidden cursor-pointer select-none touch-pan-y ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
             >
+                {/* Background Layer (Gray text) */}
+                <div className="absolute inset-0 flex items-center gap-3 pl-5 text-on-surface-variant pointer-events-none">
+                    <div className="flex-shrink-0">{Icon && <Icon />}</div>
+                    <span className="font-bold whitespace-nowrap">{value} Years</span>
+                </div>
+
+                {/* Foreground Clipping Container */}
                 <div
-                    className="absolute top-0 left-0 h-full rounded-full bg-primary flex items-center overflow-hidden"
-                    style={{ width: `${percentage}%`, minWidth: '3.5rem', transition: isDragging ? 'none' : 'width 150ms ease-out' }}
+                    className="absolute top-0 left-0 h-full overflow-hidden"
+                    style={{ width: `${percentage}%` }}
                 >
-                    <div className="flex items-center gap-3 pl-5 text-on-primary flex-shrink-0 whitespace-nowrap">
-                        {Icon && <Icon />}
+                    <div 
+                        className="h-full bg-primary flex items-center gap-3 pl-5 text-on-primary whitespace-nowrap"
+                        style={{ width: sliderWidth > 0 ? `${sliderWidth}px` : '100%' }}
+                    >
+                        <div className="flex-shrink-0">{Icon && <Icon />}</div>
                         <span className="font-bold">{value} Years</span>
                     </div>
                 </div>
-                 <div className="flex items-center gap-3 pl-5 text-on-surface-variant w-full pointer-events-none">
-                    {Icon && <Icon />}
-                    <span className="font-bold">{value} Years</span>
-                </div>
+
+                {/* Slider Handle */}
                 <div
                     className="absolute top-0 h-full w-1 bg-on-primary/50 transition-transform duration-300 ease-spring"
                     style={{

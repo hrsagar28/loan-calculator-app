@@ -13,6 +13,7 @@ const AffordabilityCalculator = ({
     setLoanAmount,
     setEmi,
     setCalculationMode,
+    setTenureYears, // Accept the new prop
     showNotification,
     density,
     handleInteractiveClick
@@ -20,7 +21,7 @@ const AffordabilityCalculator = ({
     // State specific to this calculator mode
     const [monthlyIncome, setMonthlyIncome] = usePersistentState('monthlyIncome', '');
     const [monthlyExpenses, setMonthlyExpenses] = usePersistentState('monthlyExpenses', '');
-    const [tenureYears, setTenureYears] = usePersistentState('affordabilityTenure', '15');
+    const [affordabilityTenure, setAffordabilityTenure] = usePersistentState('affordabilityTenure', '15'); // Renamed to avoid conflict
     const [interestRate, setInterestRate] = usePersistentState('affordabilityRate', '8.5');
     const [activeInput, setActiveInput] = useState(null);
 
@@ -28,10 +29,10 @@ const AffordabilityCalculator = ({
     const affordabilityResult = useMemo(() => {
         const income = parseFloat(String(monthlyIncome).replace(/,/g, ''));
         const expenses = parseFloat(String(monthlyExpenses).replace(/,/g, ''));
-        const N = parseInt(tenureYears) * 12;
+        const N = parseInt(affordabilityTenure) * 12; // Use local state for calculation
         const R_annual = parseFloat(interestRate);
 
-        if (!monthlyIncome || !monthlyExpenses || !tenureYears || !interestRate) {
+        if (!monthlyIncome || !monthlyExpenses || !affordabilityTenure || !interestRate) {
             return null;
         }
         if (isNaN(R_annual) || R_annual < 0 || R_annual > 100) {
@@ -56,25 +57,24 @@ const AffordabilityCalculator = ({
             loanAmount: Math.round(affordableLoanAmount / 1000) * 1000,
             emi: Math.round(safeEmi)
         };
-    }, [monthlyIncome, monthlyExpenses, tenureYears, interestRate]);
+    }, [monthlyIncome, monthlyExpenses, affordabilityTenure, interestRate]);
 
     // Handler to apply the calculated affordable amount to the main calculator
     const useAffordableAmount = () => {
         if (affordabilityResult && affordabilityResult.loanAmount) {
             setLoanAmount(String(affordabilityResult.loanAmount));
             setEmi(String(affordabilityResult.emi));
+            setTenureYears(affordabilityTenure); // Update the main tenure state
             setCalculationMode('rate'); // Switch main calculator to 'rate' mode
             showNotification('Affordable loan amount applied!');
             onClose();
         }
     };
-
-    // --- FIX: This handler now correctly updates all inputs ---
+    
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         const rawValue = value.replace(/,/g, '');
 
-        // Only allow numbers and a single decimal point
         if (!/^\d*\.?\d*$/.test(rawValue)) return;
 
         switch (name) {
@@ -85,7 +85,7 @@ const AffordabilityCalculator = ({
                 setMonthlyExpenses(rawValue);
                 break;
             case 'interestRate':
-                setInterestRate(value); // Keep as string to allow for decimal input
+                setInterestRate(value); 
                 break;
             default:
                 break;
@@ -108,7 +108,7 @@ const AffordabilityCalculator = ({
                     <InputWithValidation id="monthlyIncome" name="monthlyIncome" label="Your Monthly Income" value={activeInput === 'monthlyIncome' ? monthlyIncome : formatInputValue(monthlyIncome)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
                     <InputWithValidation id="monthlyExpenses" name="monthlyExpenses" label="Your Monthly Expenses" value={activeInput === 'monthlyExpenses' ? monthlyExpenses : formatInputValue(monthlyExpenses)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
                     <div>
-                        <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" />
+                        <ExpressiveSlider min={1} max={30} step={1} value={Number(affordabilityTenure)} onChange={(v) => setAffordabilityTenure(String(v))} icon="Calendar" handleInteractiveClick={handleInteractiveClick} />
                     </div>
                     <InputWithValidation id="interestRate" name="interestRate" label="Assumed Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} icon="Percent" type="text" maxLength="5" inputMode="decimal" />
                 </div>
