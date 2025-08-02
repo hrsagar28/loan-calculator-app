@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { icons } from '../../constants/icons';
 import Tooltip from '../common/Tooltip';
 
@@ -13,36 +13,40 @@ const Header = ({
     setIsSettingsOpen, handleReset, handleInteractiveClick
 }) => {
     const [headerVisible, setHeaderVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const lastScrollY = useRef(0);
 
+    // This effect now ONLY handles mobile scroll behavior.
     useEffect(() => {
-        const handleScrollAndResize = () => {
+        const handleScroll = () => {
+            // Check if it's a mobile viewport before applying scroll logic.
             if (window.innerWidth < 1024) {
                 const currentScrollY = window.scrollY;
-                if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
                     setHeaderVisible(false);
                 } else {
                     setHeaderVisible(true);
                 }
-                setLastScrollY(currentScrollY);
+                lastScrollY.current = currentScrollY;
             } else {
+                // On larger screens, always ensure the header is visible.
                 setHeaderVisible(true);
             }
         };
 
-        window.addEventListener('scroll', handleScrollAndResize, { passive: true });
-        window.addEventListener('resize', handleScrollAndResize, { passive: true });
-        
-        handleScrollAndResize();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+
+        // Initial check in case the component mounts on a non-mobile screen.
+        handleScroll();
 
         return () => {
-            window.removeEventListener('scroll', handleScrollAndResize);
-            window.removeEventListener('resize', handleScrollAndResize);
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
         };
-    }, [lastScrollY]);
+    }, []);
 
     return (
-        <header className={`sticky top-0 z-30 p-2 md:p-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <header className={`sticky top-0 z-30 p-2 md:p-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'} lg:translate-y-0`}>
             <div className="max-w-8xl mx-auto p-3 lg:p-4 rounded-2xl flex items-center justify-between bg-surface/80 border-glass glass-effect shadow-glass">
                 
                 <div className="flex items-center gap-4">
