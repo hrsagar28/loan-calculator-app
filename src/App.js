@@ -65,22 +65,22 @@ export default function App() {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
     
+    // Effect to handle the results of the calculation
     useEffect(() => {
-        if (appMode !== 'calculator' || !processedResult) {
-            setMainView('dashboard');
-            return;
-        };
+        // This effect will run whenever processedResult changes.
+        // It's a derived state from the inputs, so it's a reliable trigger.
         setIsLoading(true);
-        if (processedResult?.error) {
+
+        if (processedResult?.data) {
+            setMobileTab('results'); // Switch to results on mobile after a successful calculation
             setIsLoading(false);
-            setMainView('dashboard');
-        } else if (processedResult?.data) {
+        } else if (processedResult?.error) {
+            setMobileTab('inputs'); // Stay on inputs if there's an error
             setIsLoading(false);
-            setMobileTab('results'); // Switch to results on mobile after calculation
         } else {
-            setIsLoading(false);
+             setIsLoading(false); // No result, not loading
         }
-    }, [processedResult, appMode]);
+    }, [processedResult]);
 
     useEffect(() => {
         const lightTheme = themes[themeName]?.light;
