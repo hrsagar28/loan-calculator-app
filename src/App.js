@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 
 // Hooks
 import usePersistentState from './hooks/usePersistentState';
@@ -40,6 +40,7 @@ export default function App() {
     const [emiPaymentDay, setEmiPaymentDay] = usePersistentState('emiPaymentDay', '5');
     const [clientName, setClientName] = usePersistentState('clientName', '');
     const [prepayments, setPrepayments] = usePersistentState('loanPrepayments', []);
+    const [triggerCalc, setTriggerCalc] = useState(0);
 
     // UI State
     const [formErrors, setFormErrors] = useState({});
@@ -54,33 +55,56 @@ export default function App() {
     const [pdfStatus, setPdfStatus] = useState('idle');
     const [areScriptsReady, setAreScriptsReady] = useState(false);
     
-    // NEW: State to manage the main content view (dashboard or schedule)
-    const [mainView, setMainView] = useState('dashboard'); // 'dashboard' or 'schedule'
-    // NEW: State for mobile tab view
-    const [mobileTab, setMobileTab] = useState('inputs'); // 'inputs' or 'results'
+    const [mainView, setMainView] = useState('dashboard');
+    const [mobileTab, setMobileTab] = useState('inputs');
 
-
+    // Refs and state for mobile tab animation
+    const [tabSliderStyle, setTabSliderStyle] = useState({});
+    const mobileTabContainerRef = useRef(null);
+    const inputsTabRef = useRef(null);
+    const resultsTabRef = useRef(null);
+    
     // Custom Hook for Calculations
     const { calculationResults, processedResult } = useLoanCalculator({
-        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
+        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, triggerCalc
     });
+
+    const handleCalculate = () => {
+        setTriggerCalc(c => c + 1); // Increment to trigger recalculation in the hook
+    };
     
-    // Effect to handle the results of the calculation
     useEffect(() => {
-        // This effect will run whenever processedResult changes.
-        // It's a derived state from the inputs, so it's a reliable trigger.
-        setIsLoading(true);
+        if (triggerCalc === 0) return; // Don't run on initial load
 
         if (processedResult?.data) {
-            setMobileTab('results'); // Switch to results on mobile after a successful calculation
-            setIsLoading(false);
+            setMobileTab('results');
         } else if (processedResult?.error) {
-            setMobileTab('inputs'); // Stay on inputs if there's an error
-            setIsLoading(false);
-        } else {
-             setIsLoading(false); // No result, not loading
+            showNotification(processedResult.error, 'error');
+            setMobileTab('inputs');
         }
-    }, [processedResult]);
+    }, [processedResult, triggerCalc]);
+
+
+    useLayoutEffect(() => {
+        const updateSliderPosition = () => {
+            const activeButton = mobileTab === 'inputs' ? inputsTabRef.current : resultsTabRef.current;
+            if (activeButton) {
+                setTabSliderStyle({
+                    left: `${activeButton.offsetLeft}px`,
+                    width: `${activeButton.offsetWidth}px`,
+                });
+            }
+        };
+
+        updateSliderPosition();
+        const observer = new ResizeObserver(updateSliderPosition);
+        const container = mobileTabContainerRef.current;
+        if (container) observer.observe(container);
+
+        return () => {
+            if (container) observer.unobserve(container);
+        };
+    }, [mobileTab]);
 
     useEffect(() => {
         const lightTheme = themes[themeName]?.light;
@@ -128,8 +152,8 @@ export default function App() {
             .then(() => loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js", "jspdf-autotable-lib"))
             .then(() => setAreScriptsReady(true))
             .catch(error => {
-                console.error("Failed to load external scripts:", error);
-                showNotification("Failed to load libraries for PDF generation.", "error");
+                console.error("External script loading failed:", error);
+                showNotification("Failed to load PDF libraries.", "error");
             });
     }, []);
 
@@ -273,34 +297,7 @@ export default function App() {
       d,
       handleInteractiveClick
     };
-
-    const KeyResultsPeek = () => {
-        if (!calculationResults || isLoading || processedResult?.error) return null;
-        return (
-            <div className="mt-4 p-4 bg-surface-container rounded-2xl animate-cascade-in">
-                <h3 className="text-lg font-bold text-on-surface-variant mb-2">Key Results</h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <p className="text-on-surface-variant">Calculated Rate</p>
-                        <p className="font-bold text-primary text-lg">{calculationResults.calculatedRate.toFixed(2)}%</p>
-                    </div>
-                    <div>
-                        <p className="text-on-surface-variant">EMI</p>
-                        <p className="font-bold text-primary text-lg">{formatCurrency(calculationResults.calculatedEmi)}</p>
-                    </div>
-                    <div>
-                        <p className="text-on-surface-variant">Total Interest</p>
-                        <p className="font-bold text-tertiary text-lg">{formatCurrency(calculationResults.totalInterest)}</p>
-                    </div>
-                     <div>
-                        <p className="text-on-surface-variant">Tenure</p>
-                        <p className="font-bold text-on-surface text-lg">{`${Math.floor(calculationResults.monthlySchedule.length / 12)}y ${calculationResults.monthlySchedule.length % 12}m`}</p>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
+    
     return (
         <div className={`min-h-screen transition-colors duration-300 bg-background text-on-background ${fontSizes[fontSize]} flex flex-col overflow-x-hidden`}>
             <Header
@@ -354,20 +351,16 @@ export default function App() {
                     handleInteractiveClick={handleInteractiveClick}
                 />
 
-
                 <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container rounded-full border border-outline-variant">
-                    <div className="flex relative">
+                    <div ref={mobileTabContainerRef} className="flex relative">
                          <div
-                            className="absolute top-0 bottom-0 bg-primary rounded-full shadow-md transition-all duration-500 ease-expressive"
-                            style={{
-                                left: mobileTab === 'inputs' ? '0%' : '50%',
-                                width: '50%',
-                            }}
+                            className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500 ease-spring"
+                            style={tabSliderStyle}
                         />
-                        <button onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                        <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
                             <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
                         </button>
-                        <button onClick={handleInteractiveClick(() => setMobileTab('results'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                        <button ref={resultsTabRef} onClick={handleInteractiveClick(() => setMobileTab('results'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
                              <span className={mobileTab === 'results' ? 'text-on-primary' : 'text-on-surface-variant'}>Results</span>
                         </button>
                     </div>
@@ -375,9 +368,6 @@ export default function App() {
 
                 <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
                     <ControlSidebar {...controlSidebarProps} />
-                    <div className="lg:hidden">
-                        <KeyResultsPeek />
-                    </div>
                 </div>
                 
                 <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
@@ -409,6 +399,17 @@ export default function App() {
                     )}
                 </div>
             </main>
+
+            {mobileTab === 'inputs' && (
+                <div className="sticky bottom-4 right-4 self-end mr-4 lg:hidden">
+                    <button 
+                        onClick={handleCalculate}
+                        className="w-16 h-16 rounded-2xl bg-primary text-on-primary shadow-lg flex items-center justify-center transform active:scale-90 transition-transform duration-200 ease-expressive"
+                    >
+                        <icons.Calculator className="w-8 h-8"/>
+                    </button>
+                </div>
+            )}
 
             <Footer />
 

@@ -6,6 +6,7 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     const [isDragging, setIsDragging] = useState(false);
     const touchStartRef = useRef({ x: 0, y: 0 });
     const Icon = icons[IconComponent];
+    
     const getPercentage = useCallback((current) => ((current - min) / (max - min)) * 100, [min, max]);
 
     const handleInteraction = useCallback((e) => {
@@ -25,28 +26,21 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     const handleTouchStart = (e) => {
         if (disabled) return;
         touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        // Don't set isDragging to true yet
     };
 
     const handleTouchMove = (e) => {
         if (disabled) return;
 
-        // Only start dragging if it's the first move event and the gesture is primarily horizontal
         if (!isDragging) {
             const deltaX = Math.abs(e.touches[0].clientX - touchStartRef.current.x);
             const deltaY = Math.abs(e.touches[0].clientY - touchStartRef.current.y);
 
-            // If vertical scroll is more significant, do nothing.
-            if (deltaY > deltaX) {
-                return;
-            }
+            if (deltaY > deltaX) return;
             
-            // If horizontal movement is significant, start dragging.
             handleInteractiveClick()(); 
             setIsDragging(true);
         }
 
-        // If we are dragging, prevent default scroll and handle interaction
         if (isDragging) {
             e.preventDefault();
             handleInteraction(e);
@@ -54,11 +48,8 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     };
     
     const handleTouchEnd = () => {
-        if (isDragging) {
-            setIsDragging(false);
-        }
+        if (isDragging) setIsDragging(false);
     };
-
 
     const handleMouseDown = (e) => {
         if (disabled) return;
@@ -84,11 +75,9 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     const handleKeyDown = (e) => {
         if (disabled) return;
         let newValue = value;
-        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-            newValue = Math.min(max, value + step);
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-            newValue = Math.max(min, value - step);
-        }
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') newValue = Math.min(max, value + step);
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') newValue = Math.max(min, value - step);
+        
         if (newValue !== value) {
             if (navigator.vibrate) navigator.vibrate(3);
             onChange(newValue);
@@ -96,12 +85,15 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     };
 
     const percentage = getPercentage(value);
+    const backgroundStyle = {
+        background: `linear-gradient(to right, var(--color-primary) ${percentage}%, var(--color-surface-container-highest) ${percentage}%)`,
+        transition: isDragging ? 'none' : 'background 150ms ease-out',
+    };
 
     return (
         <div>
-            <label htmlFor="tenure-slider" className="block font-medium mb-2 text-on-surface-variant">Loan Tenure</label>
+            <label className="block font-medium mb-2 text-on-surface-variant">Loan Tenure</label>
             <div
-                id="tenure-slider"
                 ref={sliderRef}
                 onMouseDown={handleMouseDown}
                 onTouchStart={handleTouchStart}
@@ -115,25 +107,25 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
                 aria-valuenow={value}
                 aria-valuetext={`${value} years`}
                 aria-label="Loan Tenure"
-                className={`relative w-full h-14 flex items-center rounded-full bg-surface-container-highest cursor-pointer select-none touch-pan-y ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
+                style={backgroundStyle}
+                className={`relative w-full h-14 flex items-center rounded-full cursor-pointer select-none touch-pan-y ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
             >
-                <div className="flex items-center gap-3 pl-5 text-on-surface-variant w-full">
-                    {Icon && <Icon />}
-                    <span className="font-bold">{value} Years</span>
-                </div>
                 <div
-                    className="absolute top-0 left-0 h-full rounded-full bg-primary flex items-center overflow-hidden"
-                    style={{ width: `${percentage}%`, transition: isDragging ? 'none' : 'width 150ms ease-out' }}
+                    className="absolute top-0 left-0 h-full flex items-center gap-3 pl-5 text-on-primary pointer-events-none"
+                    style={{ clipPath: `inset(0 ${100 - percentage}% 0 0)` }}
                 >
-                    <div className="flex items-center gap-3 pl-5 text-on-primary flex-shrink-0 whitespace-nowrap">
-                        {Icon && <Icon />}
-                        <span className="font-bold">{value} Years</span>
-                    </div>
+                    {Icon && <Icon />}
+                    <span className="font-bold flex-shrink-0 whitespace-nowrap">{value} Years</span>
                 </div>
+                <div className="flex items-center gap-3 pl-5 text-on-surface-variant pointer-events-none">
+                    {Icon && <Icon />}
+                    <span className="font-bold flex-shrink-0 whitespace-nowrap">{value} Years</span>
+                </div>
+
                 <div
-                    className="absolute top-0 h-full w-1 bg-on-primary transition-transform duration-300 ease-spring"
+                    className="absolute top-0 h-full w-1 bg-on-primary/50 transition-transform duration-300 ease-spring"
                     style={{
-                        left: `calc(${percentage}% - 2px)`,
+                        left: `${percentage}%`,
                         transform: `translateX(-50%) scaleY(${isDragging ? 1.2 : 1})`,
                         display: percentage > 1 && percentage < 99 ? 'block' : 'none'
                     }}

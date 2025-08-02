@@ -17,30 +17,46 @@ const Header = ({
 
     useEffect(() => {
         const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                setHeaderVisible(false);
+            // Only hide header on mobile (screens smaller than lg breakpoint: 1024px)
+            if (window.innerWidth < 1024) {
+                const currentScrollY = window.scrollY;
+                if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                    setHeaderVisible(false);
+                } else {
+                    setHeaderVisible(true);
+                }
+                setLastScrollY(currentScrollY);
             } else {
+                // Always show header on larger screens
                 setHeaderVisible(true);
             }
-            setLastScrollY(currentScrollY);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener('resize', handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
     }, [lastScrollY]);
 
     return (
-        <header className={`sticky top-0 z-30 p-2 md:p-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <header className={`sticky top-0 z-30 p-2 md:p-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
             <div className="max-w-8xl mx-auto p-3 lg:p-4 rounded-2xl flex items-center justify-between bg-surface/80 border-glass glass-effect shadow-glass">
                 
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-on-primary shadow-md">
                         <icons.LoanLogo className="w-8 h-8" />
                     </div>
-                    <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight">
-                        Loan Advisor
-                    </h1>
+                    <div>
+                        <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight hidden sm:block">
+                           Loan Advisory Tool
+                        </h1>
+                         <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight sm:hidden">
+                           Loan Advisor
+                        </h1>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-1 md:gap-2 text-on-surface-variant">
