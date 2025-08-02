@@ -81,6 +81,8 @@ body::before {
 .bg-inverse-surface { background-color: var(--color-inverseSurface); }
 .text-inverse-on-surface { color: var(--color-onInverseSurface); }
 .fill-on-surface-variant { fill: var(--color-onSurfaceVariant); }
+.text-on-background { color: var(--color-onBackground); }
+
 
 /* Reusable Component Styles */
 .input-field {
