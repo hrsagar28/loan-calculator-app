@@ -1,106 +1,56 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { icons } from '../../constants/icons';
+import Tooltip from '../common/Tooltip';
 
-const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: IconComponent, handleInteractiveClick = () => {} }) => {
-    const sliderRef = useRef(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const Icon = icons[IconComponent];
-    const getPercentage = useCallback((current) => ((current - min) / (max - min)) * 100, [min, max]);
+const AnimatedIcon = ({ isToggled, OnIcon, OffIcon }) => (
+    <div className={`transition-transform duration-500 ease-expressive ${isToggled ? 'rotate-180' : ''}`}>
+        {isToggled ? <OnIcon /> : <OffIcon />}
+    </div>
+);
 
-    const handleInteraction = useCallback((e) => {
-        if (!sliderRef.current || disabled) return;
-        const rect = sliderRef.current.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-        const rawValue = (percentage / 100) * (max - min) + min;
-        const newValue = Math.round(rawValue / step) * step;
-        
-        if (newValue !== value) {
-            // Vibrate with a short, soft pulse on each step change
-            if (navigator.vibrate) navigator.vibrate(1);
-            onChange(newValue);
-        }
-    }, [min, max, step, value, onChange, disabled]);
+const Header = ({
+    isDarkMode, setIsDarkMode,
+    setIsSettingsOpen, handleReset, handleInteractiveClick
+}) => {
+    const [headerVisible, setHeaderVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
 
-    const handleStart = (e) => {
-        if (disabled) return;
-        // Trigger haptic feedback on initial touch
-        handleInteractiveClick()(); 
-        setIsDragging(true);
-        e.preventDefault();
-        handleInteraction(e);
-        const handleMove = (moveEvent) => { moveEvent.preventDefault(); handleInteraction(moveEvent); };
-        const handleEnd = () => {
-            setIsDragging(false);
-            window.removeEventListener('mousemove', handleMove);
-            window.removeEventListener('mouseup', handleEnd);
-            window.removeEventListener('touchmove', handleMove);
-            window.removeEventListener('touchend', handleEnd);
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setHeaderVisible(false);
+            } else {
+                setHeaderVisible(true);
+            }
+            setLastScrollY(currentScrollY);
         };
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('touchend', handleEnd);
-    };
 
-    const handleKeyDown = (e) => {
-        if (disabled) return;
-        let newValue = value;
-        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-            newValue = Math.min(max, value + step);
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-            newValue = Math.max(min, value - step);
-        }
-        if (newValue !== value) {
-            if (navigator.vibrate) navigator.vibrate(1);
-            onChange(newValue);
-        }
-    };
-
-    const percentage = getPercentage(value);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
 
     return (
-        <div>
-            <label htmlFor="tenure-slider" className="block font-medium mb-2 text-on-surface-variant">Loan Tenure</label>
-            <div
-                id="tenure-slider"
-                ref={sliderRef}
-                onMouseDown={handleStart}
-                onTouchStart={handleStart}
-                onKeyDown={handleKeyDown}
-                tabIndex={disabled ? -1 : 0}
-                role="slider"
-                aria-valuemin={min}
-                aria-valuemax={max}
-                aria-valuenow={value}
-                aria-valuetext={`${value} years`}
-                aria-label="Loan Tenure"
-                className={`relative w-full h-14 flex items-center rounded-full bg-surface-container-highest cursor-pointer select-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
-            >
-                <div className="flex items-center gap-3 pl-5 text-on-surface-variant w-full">
-                    {Icon && <Icon />}
-                    <span className="font-bold">{value} Years</span>
-                </div>
-                <div
-                    className="absolute top-0 left-0 h-full rounded-full bg-primary flex items-center overflow-hidden"
-                    style={{ width: `${percentage}%`, transition: isDragging ? 'none' : 'width 150ms ease-out' }}
-                >
-                    <div className="flex items-center gap-3 pl-5 text-on-primary flex-shrink-0 whitespace-nowrap">
-                        {Icon && <Icon />}
-                        <span className="font-bold">{value} Years</span>
+        <header className={`sticky top-0 z-30 p-2 md:p-4 -mx-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+            <div className="max-w-8xl mx-auto p-3 lg:p-4 rounded-2xl flex items-center justify-between bg-surface/80 border-glass glass-effect shadow-glass">
+                
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-on-primary shadow-md">
+                        <icons.LoanLogo className="w-8 h-8" />
                     </div>
+                    <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight">
+                        Loan Advisory Tool
+                    </h1>
                 </div>
-                <div
-                    className="absolute top-0 h-full w-1 bg-on-primary transition-transform duration-300 ease-spring"
-                    style={{
-                        left: `calc(${percentage}% - 2px)`,
-                        transform: `translateX(-50%) scaleY(${isDragging ? 1.2 : 1})`,
-                        display: percentage > 1 && percentage < 99 ? 'block' : 'none'
-                    }}
-                ></div>
+
+                <div className="flex items-center gap-1 md:gap-2 text-on-surface-variant">
+                    <Tooltip text="Reset Data"><button aria-label="Reset Data" onClick={handleInteractiveClick(handleReset)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.RotateCcw className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
+                    <Tooltip text="Settings"><button aria-label="Settings" onClick={handleInteractiveClick(() => setIsSettingsOpen(true))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Settings className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
+                    <Tooltip text={isDarkMode ? "Light Mode" : "Dark Mode"}><button aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"} onClick={handleInteractiveClick(() => setIsDarkMode(!isDarkMode))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><AnimatedIcon isToggled={isDarkMode} OnIcon={() => <icons.Sun className="w-5 h-5 md:w-6 md:h-6" />} OffIcon={() => <icons.Moon className="w-5 h-5 md:w-6 md:h-6" />} /></button></Tooltip>
+                </div>
             </div>
-        </div>
+        </header>
     );
 };
 
-export default ExpressiveSlider;
+export default Header;
