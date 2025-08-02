@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
 // Hooks
 import usePersistentState from './hooks/usePersistentState';
@@ -29,7 +29,7 @@ export default function App() {
     const [themeName, setThemeName] = usePersistentState('themeName', 'Crystal Graphite');
     const [layoutDensity, setLayoutDensity] = usePersistentState('layoutDensity', 'comfortable');
     const [fontSize, setFontSize] = usePersistentState('fontSize', 'base');
-    const [appMode, setAppMode] = usePersistentState('appMode', 'calculator');
+    const [appMode, ] = usePersistentState('appMode', 'calculator');
 
     // Form Inputs & State
     const [loanAmount, setLoanAmount] = usePersistentState('loanAmount', '');
@@ -40,10 +40,9 @@ export default function App() {
     const [emiPaymentDay, setEmiPaymentDay] = usePersistentState('emiPaymentDay', '5');
     const [clientName, setClientName] = usePersistentState('clientName', '');
     const [prepayments, setPrepayments] = usePersistentState('loanPrepayments', []);
-    const [triggerCalc, setTriggerCalc] = useState(0);
 
     // UI State
-    const [formErrors, setFormErrors] = useState({});
+    const [formErrors, ] = useState({});
     const [activeInput, setActiveInput] = useState(null);
     const [calculationMode, setCalculationMode] = useState('rate');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -261,8 +260,8 @@ export default function App() {
                     setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
                     showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
                 />
-                <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant">
-                    <div ref={mobileTabContainerRef} className="flex relative shadow-inner rounded-full">
+                <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner">
+                    <div ref={mobileTabContainerRef} className="flex relative">
                         <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
                         <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
                             <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>

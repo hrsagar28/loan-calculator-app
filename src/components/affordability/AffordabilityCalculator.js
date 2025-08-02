@@ -22,7 +22,6 @@ const AffordabilityCalculator = ({
     const [monthlyExpenses, setMonthlyExpenses] = usePersistentState('monthlyExpenses', '');
     const [tenureYears, setTenureYears] = usePersistentState('affordabilityTenure', '15');
     const [interestRate, setInterestRate] = usePersistentState('affordabilityRate', '8.5');
-    const [formErrors, setFormErrors] = useState({});
     const [activeInput, setActiveInput] = useState(null);
 
     // Calculation logic encapsulated within the component
@@ -111,7 +110,7 @@ const AffordabilityCalculator = ({
                     <div>
                         <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" />
                     </div>
-                    <InputWithValidation id="interestRate" name="interestRate" label="Assumed Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="Percent" type="text" maxLength="5" inputMode="decimal" />
+                    <InputWithValidation id="interestRate" name="interestRate" label="Assumed Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} icon="Percent" type="text" maxLength="5" inputMode="decimal" />
                 </div>
 
                 <div className="min-h-[220px] flex flex-col items-center justify-center transition-all duration-300 ease-in-out p-4 rounded-2xl bg-surface-container">

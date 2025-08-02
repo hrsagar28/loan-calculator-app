@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Formats a numeric string for display by adding commas for thousands.
  * @param {string | number} val - The value to format.
