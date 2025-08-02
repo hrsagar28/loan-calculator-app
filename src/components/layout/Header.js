@@ -17,7 +17,6 @@ const Header = ({
 
     useEffect(() => {
         const handleScrollAndResize = () => {
-            // Tailwind's 'lg' breakpoint is 1024px
             if (window.innerWidth < 1024) {
                 const currentScrollY = window.scrollY;
                 if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -34,7 +33,6 @@ const Header = ({
         window.addEventListener('scroll', handleScrollAndResize, { passive: true });
         window.addEventListener('resize', handleScrollAndResize, { passive: true });
         
-        // Initial check in case window is resized while scrolled down
         handleScrollAndResize();
 
         return () => {

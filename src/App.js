@@ -261,19 +261,19 @@ export default function App() {
                     setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
                     showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
                 />
-                <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container rounded-full border border-outline-variant">
-                    <div ref={mobileTabContainerRef} className="flex relative">
+                <div className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant">
+                    <div ref={mobileTabContainerRef} className="flex relative shadow-inner rounded-full">
                         <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
-                        <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                        <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
                             <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
                         </button>
-                        <button ref={resultsTabRef} onClick={handleInteractiveClick(() => { setMobileTab('results'); handleCalculate(); })} className="relative w-1/2 py-2 font-semibold rounded-full z-10 transition-colors duration-300">
+                        <button ref={resultsTabRef} onClick={handleInteractiveClick(() => { setMobileTab('results'); handleCalculate(); })} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
                              <span className={mobileTab === 'results' ? 'text-on-primary' : 'text-on-surface-variant'}>Results</span>
                         </button>
                     </div>
                 </div>
 
-                <div className={`lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
+                <div className={`w-full lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
                     <ControlSidebar {...controlSidebarProps} />
                 </div>
                 
