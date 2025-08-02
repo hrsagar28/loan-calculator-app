@@ -11,7 +11,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children, handle
                     <div className="text-on-surface-variant">{children}</div>
                 </div>
                 <div className="p-4 bg-surface-container/50 flex justify-end gap-3 rounded-b-2xl">
-                    <button onClick={handleInteractiveClick(onClose)} className="px-4 py-2 font-bold rounded-full text-primary hover:bg-surface-container-highest transition-colors">Cancel</button>
+                    <button onClick={handleInteractiveClick(onClose)} className="px-4 py-2 font-bold rounded-full text-on-background hover:bg-surface-container-highest transition-colors">Cancel</button>
                     <button onClick={handleInteractiveClick(onConfirm)} className="px-4 py-2 font-bold rounded-full bg-primary text-on-primary shadow-md hover:opacity-90 transition-opacity active:scale-95">Confirm</button>
                 </div>
             </div>

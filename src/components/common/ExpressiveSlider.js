@@ -17,7 +17,7 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
         
         if (newValue !== value) {
             // Vibrate with a short, soft pulse on each step change
-            if (navigator.vibrate) navigator.vibrate(2);
+            if (navigator.vibrate) navigator.vibrate(3);
             onChange(newValue);
         }
     }, [min, max, step, value, onChange, disabled]);
@@ -52,7 +52,7 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
             newValue = Math.max(min, value - step);
         }
         if (newValue !== value) {
-            if (navigator.vibrate) navigator.vibrate(2);
+            if (navigator.vibrate) navigator.vibrate(3);
             onChange(newValue);
         }
     };
