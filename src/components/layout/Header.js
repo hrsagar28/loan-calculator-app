@@ -31,7 +31,7 @@ const Header = ({
     }, [lastScrollY]);
 
     return (
-        <header className={`sticky top-0 z-30 p-2 md:p-4 -mx-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <header className={`sticky top-0 z-30 p-2 md:p-4 mb-4 no-print transition-transform duration-300 ease-in-out ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
             <div className="max-w-8xl mx-auto p-3 lg:p-4 rounded-2xl flex items-center justify-between bg-surface/80 border-glass glass-effect shadow-glass">
                 
                 <div className="flex items-center gap-4">
@@ -39,7 +39,7 @@ const Header = ({
                         <icons.LoanLogo className="w-8 h-8" />
                     </div>
                     <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight">
-                        Loan Advisory Tool
+                        Loan Advisor
                     </h1>
                 </div>
 

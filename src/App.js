@@ -75,11 +75,8 @@ export default function App() {
             setIsLoading(false);
             setMainView('dashboard');
         } else if (processedResult?.data) {
-            const timer = setTimeout(() => {
-                setIsLoading(false);
-                setMobileTab('results'); // Switch to results on mobile after calculation
-            }, 300);
-            return () => clearTimeout(timer);
+            setIsLoading(false);
+            setMobileTab('results'); // Switch to results on mobile after calculation
         } else {
             setIsLoading(false);
         }

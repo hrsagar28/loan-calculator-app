@@ -16,7 +16,6 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
         const newValue = Math.round(rawValue / step) * step;
         
         if (newValue !== value) {
-            // Vibrate with a short, soft pulse on each step change
             if (navigator.vibrate) navigator.vibrate(3);
             onChange(newValue);
         }
@@ -24,12 +23,14 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
 
     const handleStart = (e) => {
         if (disabled) return;
-        // Trigger haptic feedback on initial touch
         handleInteractiveClick()(); 
         setIsDragging(true);
-        e.preventDefault();
         handleInteraction(e);
-        const handleMove = (moveEvent) => { moveEvent.preventDefault(); handleInteraction(moveEvent); };
+
+        const handleMove = (moveEvent) => { 
+            moveEvent.preventDefault(); // Prevent scroll only when moving
+            handleInteraction(moveEvent); 
+        };
         const handleEnd = () => {
             setIsDragging(false);
             window.removeEventListener('mousemove', handleMove);
@@ -37,9 +38,10 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
             window.removeEventListener('touchmove', handleMove);
             window.removeEventListener('touchend', handleEnd);
         };
+
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
-        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: false }); // Set passive to false to allow preventDefault
         window.addEventListener('touchend', handleEnd);
     };
 
