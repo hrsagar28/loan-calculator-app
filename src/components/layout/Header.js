@@ -16,8 +16,8 @@ const Header = ({
     const [lastScrollY, setLastScrollY] = useState(0);
 
     useEffect(() => {
-        const handleScroll = () => {
-            // Only hide header on mobile (screens smaller than lg breakpoint: 1024px)
+        const handleScrollAndResize = () => {
+            // Tailwind's 'lg' breakpoint is 1024px
             if (window.innerWidth < 1024) {
                 const currentScrollY = window.scrollY;
                 if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -27,17 +27,19 @@ const Header = ({
                 }
                 setLastScrollY(currentScrollY);
             } else {
-                // Always show header on larger screens
                 setHeaderVisible(true);
             }
         };
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        window.addEventListener('resize', handleScroll, { passive: true });
+        window.addEventListener('scroll', handleScrollAndResize, { passive: true });
+        window.addEventListener('resize', handleScrollAndResize, { passive: true });
+        
+        // Initial check in case window is resized while scrolled down
+        handleScrollAndResize();
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('resize', handleScroll);
+            window.removeEventListener('scroll', handleScrollAndResize);
+            window.removeEventListener('resize', handleScrollAndResize);
         };
     }, [lastScrollY]);
 

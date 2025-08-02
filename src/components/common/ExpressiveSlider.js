@@ -34,10 +34,8 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
         if (!isDragging) {
             const deltaX = Math.abs(e.touches[0].clientX - touchStartRef.current.x);
             const deltaY = Math.abs(e.touches[0].clientY - touchStartRef.current.y);
-
             if (deltaY > deltaX) return;
-            
-            handleInteractiveClick()(); 
+            handleInteractiveClick()();
             setIsDragging(true);
         }
 
@@ -85,10 +83,6 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
     };
 
     const percentage = getPercentage(value);
-    const backgroundStyle = {
-        background: `linear-gradient(to right, var(--color-primary) ${percentage}%, var(--color-surface-container-highest) ${percentage}%)`,
-        transition: isDragging ? 'none' : 'background 150ms ease-out',
-    };
 
     return (
         <div>
@@ -107,21 +101,21 @@ const ExpressiveSlider = ({ min, max, step, value, onChange, disabled, icon: Ico
                 aria-valuenow={value}
                 aria-valuetext={`${value} years`}
                 aria-label="Loan Tenure"
-                style={backgroundStyle}
-                className={`relative w-full h-14 flex items-center rounded-full cursor-pointer select-none touch-pan-y ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
+                className={`relative w-full h-14 flex items-center rounded-full bg-surface-container-highest cursor-pointer select-none touch-pan-y ${disabled ? 'opacity-50 cursor-not-allowed' : ''} focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background`}
             >
                 <div
-                    className="absolute top-0 left-0 h-full flex items-center gap-3 pl-5 text-on-primary pointer-events-none"
-                    style={{ clipPath: `inset(0 ${100 - percentage}% 0 0)` }}
+                    className="absolute top-0 left-0 h-full rounded-full bg-primary flex items-center overflow-hidden"
+                    style={{ width: `${percentage}%`, minWidth: '3.5rem', transition: isDragging ? 'none' : 'width 150ms ease-out' }}
                 >
-                    {Icon && <Icon />}
-                    <span className="font-bold flex-shrink-0 whitespace-nowrap">{value} Years</span>
+                    <div className="flex items-center gap-3 pl-5 text-on-primary flex-shrink-0 whitespace-nowrap">
+                        {Icon && <Icon />}
+                        <span className="font-bold">{value} Years</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3 pl-5 text-on-surface-variant pointer-events-none">
+                 <div className="flex items-center gap-3 pl-5 text-on-surface-variant w-full pointer-events-none">
                     {Icon && <Icon />}
-                    <span className="font-bold flex-shrink-0 whitespace-nowrap">{value} Years</span>
+                    <span className="font-bold">{value} Years</span>
                 </div>
-
                 <div
                     className="absolute top-0 h-full w-1 bg-on-primary/50 transition-transform duration-300 ease-spring"
                     style={{

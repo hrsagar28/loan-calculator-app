@@ -1,210 +1,167 @@
-import { useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-// This custom hook encapsulates all the loan calculation logic.
-const useLoanCalculator = ({
-    loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay,
-    calculationMode, prepayments, formErrors, appMode
-}) => {
+const useLoanCalculator = (params) => {
+    const {
+        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay,
+        calculationMode, prepayments, formErrors, appMode, trigger
+    } = params;
 
-    const calculateSchedule = useCallback((params) => {
-        const {
-            loanAmount: P_str, tenureYears: N_str, emi: E_str, interestRate: R_str,
-            prepayments: currentPrepayments = [], startDate: currentStartDate,
-            emiPaymentDay: currentEmiDay, calculationMode: mode
-        } = params;
+    const [calculationResults, setCalculationResults] = useState(null);
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-        const P = parseFloat(String(P_str).replace(/,/g, ''));
-        let E = parseFloat(String(E_str).replace(/,/g, ''));
-        let N = parseInt(N_str) * 12;
-        let R = parseFloat(R_str) / 12 / 100;
-
-        if (isNaN(P) || P <= 0) return { error: "Invalid Loan Amount." };
+    const performCalculation = useCallback(() => {
+        setIsLoading(true);
+        setError(null);
+        setCalculationResults(null);
 
         try {
-            if (mode === 'rate') {
-                if (isNaN(E) || isNaN(N) || N <= 0 || E <= 0) throw new Error("Enter valid EMI & Tenure for rate calculation.");
-                if (E * N < P) {
-                    throw new Error("EMI is too low. Total payments will not cover the loan amount.");
-                }
+            // --- Input Validation ---
+            if (
+                (calculationMode === 'rate' && (!loanAmount || !tenureYears || !emi)) ||
+                (calculationMode === 'emi' && (!loanAmount || !tenureYears || !interestRate)) ||
+                (calculationMode === 'tenure' && (!loanAmount || !emi || !interestRate))
+            ) {
+                throw new Error("Please fill all required fields to calculate.");
+            }
+             if (Object.values(formErrors).some(e => e)) {
+                throw new Error("Please fix the validation errors before calculating.");
+            }
+
+
+            const P = parseFloat(String(loanAmount).replace(/,/g, ''));
+            let E = parseFloat(String(emi).replace(/,/g, ''));
+            let N = parseInt(tenureYears) * 12;
+            let R = parseFloat(interestRate) / 12 / 100;
+
+            if (isNaN(P) || P <= 0) throw new Error("Invalid Loan Amount.");
+
+            // --- Calculation Logic ---
+             if (calculationMode === 'rate') {
+                if (E * N < P) throw new Error("EMI is too low to cover the principal.");
                 let low = 0, high = 1;
                 for (let i = 0; i < 100; i++) {
                     let mid = (low + high) / 2;
                     if (mid === 0) break;
                     let calcEmi = P * mid * Math.pow(1 + mid, N) / (Math.pow(1 + mid, N) - 1);
-                    if (isNaN(calcEmi) || !isFinite(calcEmi)) {
-                         high = mid; // If calculation fails, likely due to high rate, adjust search range
-                         continue;
-                    }
-                    if (calcEmi > E) high = mid;
-                    else low = mid;
+                     if (isNaN(calcEmi) || !isFinite(calcEmi)) { high = mid; continue; }
+                    if (calcEmi > E) high = mid; else low = mid;
                 }
                 R = (low + high) / 2;
-                 if (P * R >= E) {
-                    throw new Error("EMI is too low to cover monthly interest. Loan balance will increase.");
-                }
-            } else if (mode === 'emi') {
-                if (isNaN(R) || isNaN(N) || N <= 0 || R < 0) throw new Error("Enter valid Rate & Tenure for EMI calculation.");
-                if (R === 0) { E = P / N; }
-                else { E = P * R * Math.pow(1 + R, N) / (Math.pow(1 + R, N) - 1); }
-            } else if (mode === 'tenure') {
-                if (isNaN(E) || isNaN(R) || E <= 0 || R < 0) throw new Error("Enter valid Rate & EMI for tenure calculation.");
-                if (R > 0 && (P * R) >= E) {
-                    throw new Error("EMI is too low to cover the interest. The loan will never be repaid.");
-                }
+                if (P * R >= E) throw new Error("EMI is too low to cover monthly interest.");
+            } else if (calculationMode === 'emi') {
+                if (R === 0) E = P / N;
+                else E = P * R * Math.pow(1 + R, N) / (Math.pow(1 + R, N) - 1);
+            } else if (calculationMode === 'tenure') {
+                if (R > 0 && P * R >= E) throw new Error("EMI is too low to cover the interest.");
                 if (R === 0) {
-                    if (E > 0) { N = P / E; }
-                    else { throw new Error("EMI must be positive."); }
+                    if (E > 0) N = P / E; else throw new Error("EMI must be positive.");
                 } else {
                     N = Math.log(E / (E - P * R)) / Math.log(1 + R);
                 }
-                if (N > 360) {
-                    throw new Error("The calculated tenure exceeds the 30-year limit.");
+                if (N > 360) throw new Error("Calculated tenure exceeds the 30-year limit.");
+            }
+            
+            if (isNaN(E) || isNaN(R) || isNaN(N) || N < 0 || !isFinite(E) || !isFinite(R) || !isFinite(N)) {
+                throw new Error("Calculation resulted in invalid numbers.");
+            }
+
+            // --- Schedule Generation ---
+            let balance = P;
+            const monthlySchedule = [];
+            let totalInterest = 0;
+            const prepaymentsMap = new Map(prepayments.map(p => [parseInt(p.month), parseFloat(String(p.amount || 0).replace(/,/g, ''))]));
+            let m = 0;
+            const maxMonths = Math.min(Math.ceil(N), 360);
+
+            while (balance > 0.01 && m < maxMonths) {
+                const paymentDate = new Date(startDate);
+                paymentDate.setMonth(paymentDate.getMonth() + m, 1);
+                const daysInMonth = new Date(paymentDate.getFullYear(), paymentDate.getMonth() + 1, 0).getDate();
+                paymentDate.setDate(Math.min(parseInt(emiPaymentDay), daysInMonth));
+
+                const interestComponent = balance * R;
+                let principalComponent = E - interestComponent;
+                let actualEmi = E;
+
+                if (balance - principalComponent < 0) {
+                    principalComponent = balance;
+                    actualEmi = balance + interestComponent;
                 }
+
+                const prepaymentAmount = prepaymentsMap.get(m + 1) || 0;
+                if (prepaymentAmount > 0 && prepaymentAmount > balance - principalComponent) {
+                    throw new Error(`Prepayment in month ${m + 1} exceeds remaining balance.`);
+                }
+                
+                const endingBalance = balance - principalComponent - prepaymentAmount;
+                monthlySchedule.push({ month: m + 1, date: paymentDate, beginningBalance: balance, emi: actualEmi, principal: principalComponent, interest: interestComponent, prepayment: prepaymentAmount, endingBalance: endingBalance < 0 ? 0 : endingBalance });
+                totalInterest += interestComponent;
+                balance = endingBalance;
+                m++;
             }
-        } catch (e) {
-            return { error: e.message };
-        }
-
-        if (isNaN(E) || isNaN(R) || isNaN(N) || N < 0 || !isFinite(E) || !isFinite(R) || !isFinite(N)) {
-            return { error: "Calculation resulted in invalid numbers. Please check your inputs." };
-        }
-
-
-        let balance = P;
-        const monthlySchedule = [];
-        let totalInterest = 0;
-        let cumulativeInterest = 0, cumulativePrincipal = 0;
-        const start = new Date(currentStartDate);
-        if (start.getDate() > parseInt(currentEmiDay)) {
-            start.setMonth(start.getMonth() + 1);
-        }
-
-        const prepaymentsMap = new Map(currentPrepayments.map(p => [parseInt(p.month), parseFloat(String(p.amount || 0).replace(/,/g, ''))]));
-        let m = 0;
-        const maxMonths = Math.min(Math.ceil(N), 360);
-
-        while (balance > 0.01 && m < maxMonths) {
-            const paymentDate = new Date(start);
-            paymentDate.setMonth(start.getMonth() + m, 1);
-            const daysInMonth = new Date(paymentDate.getFullYear(), paymentDate.getMonth() + 1, 0).getDate();
-            const actualPaymentDay = Math.min(parseInt(currentEmiDay), daysInMonth);
-            paymentDate.setDate(actualPaymentDay);
-
-            const interestComponent = balance * R;
-            let principalComponent = E - interestComponent;
-            let actualEmi = E;
-
-            if (balance - principalComponent < 0) {
-                principalComponent = balance;
-                actualEmi = balance + interestComponent;
+            
+            if (balance > 0.01) {
+                throw new Error("Loan cannot be paid off with the given inputs within the tenure.");
             }
 
-            let prepaymentAmount = prepaymentsMap.get(m + 1) || 0;
-            const balanceAfterEmi = balance - principalComponent;
+            const getFinancialYear = (date) => {
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                return month >= 3 ? `FY ${year}-${String(year + 1).slice(2)}` : `FY ${year - 1}-${String(year).slice(2)}`;
+            };
 
-            if (prepaymentAmount > 0 && prepaymentAmount > balanceAfterEmi) {
-                 return { error: `Prepayment in month ${m + 1} exceeds remaining balance.` };
-            }
-
-            const endingBalance = balance - principalComponent - prepaymentAmount;
-
-            cumulativeInterest += interestComponent;
-            cumulativePrincipal += principalComponent + prepaymentAmount;
-
-            monthlySchedule.push({
-                month: m + 1, date: paymentDate, beginningBalance: balance, emi: actualEmi,
-                principal: principalComponent, interest: interestComponent, prepayment: prepaymentAmount,
-                endingBalance: endingBalance < 0 ? 0 : endingBalance, cumulativeInterest, cumulativePrincipal
+            const fyMap = new Map();
+            monthlySchedule.forEach(item => {
+                const fy = getFinancialYear(item.date);
+                if (!fyMap.has(fy)) fyMap.set(fy, { principal: 0, interest: 0, totalPrepayment: 0, closingBalance: 0, months: [] });
+                const currentFy = fyMap.get(fy);
+                currentFy.principal += item.principal;
+                currentFy.interest += item.interest;
+                currentFy.totalPrepayment += item.prepayment;
+                currentFy.closingBalance = item.endingBalance;
+                currentFy.months.push(item);
             });
 
-            totalInterest += interestComponent;
-            balance = endingBalance;
-            m++;
-        }
-        
-        if (balance > 0.01) {
-            return { error: "Loan cannot be fully paid with the given inputs within the specified tenure." };
-        }
-
-
-        const getFinancialYear = (date) => {
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            return month >= 3 ? `FY ${year}-${String(year + 1).slice(2)}` : `FY ${year - 1}-${String(year).slice(2)}`;
-        };
-
-        const fyMap = new Map();
-        monthlySchedule.forEach(item => {
-            const fy = getFinancialYear(item.date);
-            if (!fyMap.has(fy)) {
-                fyMap.set(fy, { principal: 0, interest: 0, totalPrepayment: 0, closingBalance: 0, months: [] });
-            }
-            const currentFy = fyMap.get(fy);
-            currentFy.principal += item.principal;
-            currentFy.interest += item.interest;
-            currentFy.totalPrepayment += item.prepayment;
-            currentFy.closingBalance = item.endingBalance;
-            currentFy.months.push(item);
-        });
-
-        const financialYearBreakdown = Array.from(fyMap.entries()).map(([year, data]) => ({ year, ...data }));
-
-        return {
-            data: {
+            const finalResults = {
                 calculatedRate: R * 12 * 100,
                 calculatedEmi: E,
-                calculatedTenure: N,
                 totalInterest,
-                totalPayment: P, // Correctly use the initial principal amount
+                totalPayment: P,
                 monthlySchedule,
-                financialYearBreakdown,
+                financialYearBreakdown: Array.from(fyMap.entries()).map(([year, data]) => ({ year, ...data })),
                 loanEndDate: monthlySchedule.length > 0 ? monthlySchedule[monthlySchedule.length - 1].date : new Date()
+            };
+
+            setCalculationResults(finalResults);
+
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors]);
+
+    useEffect(() => {
+        if(appMode !== 'calculator') return;
+
+        // Auto-calculate on desktop
+        const isDesktop = window.innerWidth >= 1024;
+        if(isDesktop) {
+            performCalculation();
+        } else {
+            // On mobile, only calculate when the trigger changes (FAB is clicked)
+            if (trigger > 0) {
+                performCalculation();
+            } else {
+                // Clear results on mobile if inputs change but FAB is not clicked
+                setCalculationResults(null);
+                setError(null);
             }
-        };
-    }, []);
-
-    const processedResult = useMemo(() => {
-        if (appMode !== 'calculator') return null;
-
-        if (calculationMode === 'rate' && (!loanAmount || !tenureYears || !emi)) return null;
-        if (calculationMode === 'emi' && (!loanAmount || !tenureYears || !interestRate)) return null;
-        if (calculationMode === 'tenure' && (!loanAmount || !emi || !interestRate)) return null;
-
-        if (Object.values(formErrors).some(e => e)) {
-            return { error: "Please fix the errors before calculating." };
         }
+    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, trigger, performCalculation]);
 
-        const P = parseFloat(String(loanAmount).replace(/,/g, ''));
-        if (isNaN(P) || P <= 0) return { error: "Please enter a valid Loan Amount." };
-        if (P > 1000000000) return { error: "Loan Amount seems too high." };
-
-        const baseParams = { loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments: [] };
-        const preliminaryResult = calculateSchedule(baseParams);
-
-        if (preliminaryResult.error) {
-            return { error: preliminaryResult.error };
-        }
-
-        const finalParams = { loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments };
-        const finalResult = calculateSchedule(finalParams);
-
-        if (finalResult.error) {
-            return { error: finalResult.error };
-        }
-
-        if (finalResult.data && preliminaryResult.data) {
-            finalResult.data.interestSaved = prepayments.length > 0 ? preliminaryResult.data.totalInterest - finalResult.data.totalInterest : 0;
-            finalResult.data.tenureReduced = prepayments.length > 0 ? preliminaryResult.data.monthlySchedule.length - finalResult.data.monthlySchedule.length : 0;
-        }
-
-        return finalResult;
-
-    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, calculateSchedule, formErrors, appMode]);
-
-    return {
-        calculationResults: processedResult?.data,
-        processedResult
-    };
+    return { calculationResults, error, isLoading };
 };
 
 export default useLoanCalculator;
