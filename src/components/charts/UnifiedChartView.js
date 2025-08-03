@@ -9,7 +9,7 @@ const UnifiedChartView = ({ results, formatCurrency, loanAmount }) => {
     const chartComponents = {
         breakdown: <LoanBreakdownChart principal={parseFloat(String(loanAmount).replace(/,/g, ''))} interest={results.totalInterest} isVisible={true} />,
         balance: <BalanceDeclineChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={parseFloat(String(loanAmount).replace(/,/g, ''))} />,
-        cumulative: <CumulativeChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={results.totalPayment} />
+        cumulative: <CumulativeChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={parseFloat(String(loanAmount).replace(/,/g, ''))} />
     };
 
     return (
