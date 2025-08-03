@@ -236,79 +236,83 @@ export default function App() {
                 isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} setIsSettingsOpen={setIsSettingsOpen}
                 handleReset={handleReset} handleInteractiveClick={handleInteractiveClick}
             />
-            <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
-                <SettingsModal
-                    isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
-                    themes={themes} themeName={themeName} setThemeName={setThemeName}
-                    layoutDensity={layoutDensity} setLayoutDensity={setLayoutDensity}
-                    fontSize={fontSize} setFontSize={setFontSize}
-                    handleInteractiveClick={handleInteractiveClick}
-                />
-                <ConfirmationModal
-                    isOpen={isResetModalOpen} onClose={() => setIsResetModalOpen(false)}
-                    onConfirm={confirmReset} title="Confirm Reset" handleInteractiveClick={handleInteractiveClick}
-                >
-                    <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
-                </ConfirmationModal>
-                <PrepaymentModal 
-                    isOpen={isPrepaymentModalOpen} onClose={() => setIsPrepaymentModalOpen(false)}
-                    prepayments={prepayments} setPrepayments={setPrepayments}
-                    formatCurrency={formatCurrency} handleInteractiveClick={handleInteractiveClick}
-                />
-                <AffordabilityCalculator
-                    isOpen={isAffordabilityModalOpen} onClose={() => setIsAffordabilityModalOpen(false)}
-                    setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
-                    setTenureYears={setTenureYears} // Pass the setter function
-                    showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
-                />
-                 <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex">
-                    <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
-                    <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
-                        <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
-                    </button>
-                    <button ref={resultsTabRef} onClick={handleInteractiveClick(() => { setMobileTab('results'); handleCalculate(); })} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
-                        <span className={mobileTab === 'results' ? 'text-on-primary' : 'text-on-surface-variant'}>Results</span>
-                    </button>
-                </div>
 
-
-                <div className={`w-full lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
-                    <ControlSidebar {...controlSidebarProps} />
-                </div>
-                
-                <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
-                    {mainView === 'dashboard' ? (
-                        <DashboardView
-                            results={calculationResults} isLoading={isLoading}
-                            hasError={!!error} errorMessage={error}
-                            onShowSchedule={() => setMainView('schedule')}
-                            formatCurrency={formatCurrency} loanAmount={loanAmount}
-                            interestRate={interestRate} calculationMode={calculationMode}
-                            density={d}
-                        />
-                    ) : (
-                        <RepaymentSchedule
-                            results={calculationResults} onBack={() => setMainView('dashboard')}
-                            formatCurrency={formatCurrency} density={d}
-                            handleExportCsv={handleExportCsv} handleDownloadPdf={handleDownloadPdf}
-                            pdfStatus={pdfStatus} areScriptsReady={areScriptsReady}
-                            handleInteractiveClick={handleInteractiveClick}
-                        />
-                    )}
-                </div>
-                
-                {mobileTab === 'inputs' && (
-                    <div className="fixed bottom-6 right-6 lg:hidden z-20">
-                        <button 
-                            onClick={handleInteractiveClick(handleCalculate)}
-                            className="w-16 h-16 rounded-2xl bg-primary text-on-primary shadow-lg flex items-center justify-center transform active:scale-90 transition-transform duration-200 ease-expressive"
-                        >
-                            <icons.CalculatorIcon className="w-8 h-8"/>
+            {/* This div now wraps the main content and footer, providing the necessary offset for the fixed header */}
+            <div className="flex-grow flex flex-col pt-24 md:pt-28">
+                <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
+                    <SettingsModal
+                        isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
+                        themes={themes} themeName={themeName} setThemeName={setThemeName}
+                        layoutDensity={layoutDensity} setLayoutDensity={setLayoutDensity}
+                        fontSize={fontSize} setFontSize={setFontSize}
+                        handleInteractiveClick={handleInteractiveClick}
+                    />
+                    <ConfirmationModal
+                        isOpen={isResetModalOpen} onClose={() => setIsResetModalOpen(false)}
+                        onConfirm={confirmReset} title="Confirm Reset" handleInteractiveClick={handleInteractiveClick}
+                    >
+                        <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
+                    </ConfirmationModal>
+                    <PrepaymentModal 
+                        isOpen={isPrepaymentModalOpen} onClose={() => setIsPrepaymentModalOpen(false)}
+                        prepayments={prepayments} setPrepayments={setPrepayments}
+                        formatCurrency={formatCurrency} handleInteractiveClick={handleInteractiveClick}
+                    />
+                    <AffordabilityCalculator
+                        isOpen={isAffordabilityModalOpen} onClose={() => setIsAffordabilityModalOpen(false)}
+                        setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
+                        setTenureYears={setTenureYears} // Pass the setter function
+                        showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
+                    />
+                    <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex">
+                        <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
+                        <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
+                            <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
+                        </button>
+                        <button ref={resultsTabRef} onClick={handleInteractiveClick(() => { setMobileTab('results'); handleCalculate(); })} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
+                            <span className={mobileTab === 'results' ? 'text-on-primary' : 'text-on-surface-variant'}>Results</span>
                         </button>
                     </div>
-                )}
-            </main>
-            <Footer />
+
+
+                    <div className={`w-full lg:w-1/3 lg:max-w-md flex-shrink-0 ${mobileTab === 'inputs' ? 'block' : 'hidden'} lg:block`}>
+                        <ControlSidebar {...controlSidebarProps} />
+                    </div>
+                    
+                    <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
+                        {mainView === 'dashboard' ? (
+                            <DashboardView
+                                results={calculationResults} isLoading={isLoading}
+                                hasError={!!error} errorMessage={error}
+                                onShowSchedule={() => setMainView('schedule')}
+                                formatCurrency={formatCurrency} loanAmount={loanAmount}
+                                interestRate={interestRate} calculationMode={calculationMode}
+                                density={d}
+                            />
+                        ) : (
+                            <RepaymentSchedule
+                                results={calculationResults} onBack={() => setMainView('dashboard')}
+                                formatCurrency={formatCurrency} density={d}
+                                handleExportCsv={handleExportCsv} handleDownloadPdf={handleDownloadPdf}
+                                pdfStatus={pdfStatus} areScriptsReady={areScriptsReady}
+                                handleInteractiveClick={handleInteractiveClick}
+                            />
+                        )}
+                    </div>
+                    
+                    {mobileTab === 'inputs' && (
+                        <div className="fixed bottom-6 right-6 lg:hidden z-20">
+                            <button 
+                                onClick={handleInteractiveClick(handleCalculate)}
+                                className="w-16 h-16 rounded-2xl bg-primary text-on-primary shadow-lg flex items-center justify-center transform active:scale-90 transition-transform duration-200 ease-expressive"
+                            >
+                                <icons.CalculatorIcon className="w-8 h-8"/>
+                            </button>
+                        </div>
+                    )}
+                </main>
+                <Footer />
+            </div>
             <Snackbar message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: 'success' })} />
         </div>
     );

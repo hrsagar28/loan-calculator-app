@@ -23,7 +23,7 @@ const Tooltip = ({ text, children }) => {
             <div
                 id={tooltipId}
                 role="tooltip"
-                className={`absolute bottom-full right-0 mb-2 w-max max-w-xs p-2 text-[0.8em] font-medium rounded-md shadow-lg transition-opacity duration-300 z-50 bg-primary text-on-primary ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max max-w-xs p-2 text-[0.8em] font-medium rounded-md shadow-lg transition-opacity duration-300 z-50 bg-primary text-on-primary ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'} hidden md:block`}
             >
                 {text}
             </div>

@@ -106,11 +106,11 @@ export const PrepaymentSavings = ({ results, formatCurrency }) => {
             <h4 className="font-bold text-on-surface mb-2">Prepayment Savings</h4>
             {hasSavings ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center">
+                    <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center transition-transform hover:scale-105 card-glow-effect">
                         <p className="font-semibold">Interest Saved</p>
                         <p className="font-bold text-2xl font-display">{formatCurrency(results.interestSaved)}</p>
                     </div>
-                    <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center">
+                    <div className="bg-primary-container text-on-primary-container rounded-xl p-3 text-center transition-transform hover:scale-105 card-glow-effect">
                         <p className="font-semibold">Tenure Reduced By</p>
                         <p className="font-bold text-2xl font-display">{results.tenureReduced} months</p>
                     </div>
