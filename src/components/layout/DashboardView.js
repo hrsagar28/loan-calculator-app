@@ -26,7 +26,7 @@ const DashboardView = ({ results, isLoading, hasError, errorMessage, onShowSched
     if (!hasValidResults) {
          return (
             <Card className={`${d.p} h-full flex flex-col items-center justify-center text-center`}>
-                <icons.LoanLogo className="w-24 h-24 text-primary opacity-20 mb-4"/>
+                <icons.LoanLogoIcon className="w-24 h-24 text-primary opacity-20 mb-4"/>
                 <h2 className="text-2xl font-display font-bold text-on-surface-variant">Your Loan Dashboard</h2>
                 <p className="text-on-surface-variant max-w-sm">Enter your loan details in the panel on the left to see your results and visualizations here.</p>
             </Card>

@@ -33,7 +33,7 @@ const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculati
     return (
         <div>
             <h3 className="text-[1.5em] font-semibold text-on-surface font-display mb-4 flex items-center gap-2">
-                <icons.TrendingUp className="text-primary"/> Loan Summary & Insights
+                <icons.TrendingUpIcon className="text-primary"/> Loan Summary & Insights
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                 {summaryItems.map(item => (

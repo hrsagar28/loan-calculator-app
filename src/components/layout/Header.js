@@ -15,10 +15,8 @@ const Header = ({
     const [headerVisible, setHeaderVisible] = useState(true);
     const lastScrollY = useRef(0);
 
-    // This effect now ONLY handles mobile scroll behavior.
     useEffect(() => {
         const handleScroll = () => {
-            // Check if it's a mobile viewport before applying scroll logic.
             if (window.innerWidth < 1024) {
                 const currentScrollY = window.scrollY;
                 if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
@@ -28,7 +26,6 @@ const Header = ({
                 }
                 lastScrollY.current = currentScrollY;
             } else {
-                // On larger screens, always ensure the header is visible.
                 setHeaderVisible(true);
             }
         };
@@ -36,7 +33,6 @@ const Header = ({
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', handleScroll, { passive: true });
 
-        // Initial check in case the component mounts on a non-mobile screen.
         handleScroll();
 
         return () => {
@@ -51,7 +47,7 @@ const Header = ({
                 
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-on-primary shadow-md">
-                        <icons.LoanLogo className="w-8 h-8" />
+                        <icons.LoanLogoIcon className="w-8 h-8" />
                     </div>
                     <div>
                         <h1 className="text-[1.8em] md:text-[2.2em] font-bold text-primary font-display leading-tight hidden sm:block">
@@ -64,9 +60,9 @@ const Header = ({
                 </div>
 
                 <div className="flex items-center gap-1 md:gap-2 text-on-surface-variant">
-                    <Tooltip text="Reset Data"><button aria-label="Reset Data" onClick={handleInteractiveClick(handleReset)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.RotateCcw className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
-                    <Tooltip text="Settings"><button aria-label="Settings" onClick={handleInteractiveClick(() => setIsSettingsOpen(true))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.Settings className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
-                    <Tooltip text={isDarkMode ? "Light Mode" : "Dark Mode"}><button aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"} onClick={handleInteractiveClick(() => setIsDarkMode(!isDarkMode))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><AnimatedIcon isToggled={isDarkMode} OnIcon={() => <icons.Sun className="w-5 h-5 md:w-6 md:h-6" />} OffIcon={() => <icons.Moon className="w-5 h-5 md:w-6 md:h-6" />} /></button></Tooltip>
+                    <Tooltip text="Reset Data"><button aria-label="Reset Data" onClick={handleInteractiveClick(handleReset)} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.RotateCcwIcon className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
+                    <Tooltip text="Settings"><button aria-label="Settings" onClick={handleInteractiveClick(() => setIsSettingsOpen(true))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><icons.SettingsIcon className="w-5 h-5 md:w-6 md:h-6" /></button></Tooltip>
+                    <Tooltip text={isDarkMode ? "Light Mode" : "Dark Mode"}><button aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"} onClick={handleInteractiveClick(() => setIsDarkMode(!isDarkMode))} className="p-2 rounded-full hover:bg-surface-container-high transition-colors"><AnimatedIcon isToggled={isDarkMode} OnIcon={() => <icons.SunIcon className="w-5 h-5 md:w-6 md:h-6" />} OffIcon={() => <icons.MoonIcon className="w-5 h-5 md:w-6 md:h-6" />} /></button></Tooltip>
                 </div>
             </div>
         </header>

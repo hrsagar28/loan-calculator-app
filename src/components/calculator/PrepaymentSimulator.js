@@ -25,13 +25,13 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                 <div className="p-6 flex justify-between items-center border-b border-outline-variant">
                     <h2 className="text-2xl font-bold text-on-surface font-display">Prepayment Simulator</h2>
                     <button onClick={handleInteractiveClick(addPrepayment)} className="flex items-center gap-2 px-4 py-2 font-semibold rounded-full bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity active:scale-95">
-                        <icons.Add /> Add New
+                        <icons.AddIcon /> Add New
                     </button>
                 </div>
                 <div className="p-6 space-y-4 overflow-y-auto max-h-[60vh]">
                     {prepayments.length === 0 ? (
                          <div className="p-4 flex items-start gap-4 bg-tertiary-container text-on-tertiary-container rounded-xl">
-                            <icons.Lightbulb className="w-10 h-10 flex-shrink-0 mt-1" />
+                            <icons.LightbulbIcon className="w-10 h-10 flex-shrink-0 mt-1" />
                             <div>
                                 <h4 className="font-bold font-display text-lg">Smart Tip</h4>
                                 <p>Add prepayments to see how much you can save on interest and reduce your loan tenure.</p>
@@ -63,7 +63,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                             <div className="col-span-5">
                                 <div className="relative input-field rounded-xl">
                                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                        <icons.Calendar className="text-on-surface-variant" />
+                                        <icons.CalendarIcon className="text-on-surface-variant" />
                                     </div>
                                     <input
                                         type="text"
@@ -83,7 +83,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                             </div>
                             <div className="col-span-2 text-center">
                                 <button onClick={handleInteractiveClick(() => removePrepayment(i))} aria-label={`Remove prepayment entry ${i + 1}`} className="group p-2.5 rounded-full text-error hover:bg-error-container/20 transition-colors duration-300">
-                                    <icons.Trash className="transition-transform duration-300 group-hover:scale-110" />
+                                    <icons.TrashIcon className="transition-transform duration-300 group-hover:scale-110" />
                                 </button>
                             </div>
                         </div>

@@ -303,7 +303,7 @@ export default function App() {
                             onClick={handleInteractiveClick(handleCalculate)}
                             className="w-16 h-16 rounded-2xl bg-primary text-on-primary shadow-lg flex items-center justify-center transform active:scale-90 transition-transform duration-200 ease-expressive"
                         >
-                            <icons.Calculator className="w-8 h-8"/>
+                            <icons.CalculatorIcon className="w-8 h-8"/>
                         </button>
                     </div>
                 )}

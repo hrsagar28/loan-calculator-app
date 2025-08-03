@@ -4,10 +4,10 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children, handle
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose} aria-modal="true" role="dialog">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose} aria-modal="true" role="dialog" aria-labelledby="confirmation-title">
             <div className="rounded-2xl shadow-glass w-full max-w-sm bg-surface-container-high flex flex-col glass-effect border-glass" onClick={e => e.stopPropagation()}>
                 <div className="p-6">
-                    <h2 className="text-2xl font-bold text-on-surface font-display mb-2">{title}</h2>
+                    <h2 id="confirmation-title" className="text-2xl font-bold text-on-surface font-display mb-2">{title}</h2>
                     <div className="text-on-surface-variant">{children}</div>
                 </div>
                 <div className="p-4 bg-surface-container/50 flex justify-end gap-3 rounded-b-2xl">

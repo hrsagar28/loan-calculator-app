@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { MAX_LOAN_TENURE_MONTHS, MAX_CALCULATED_RATE } from '../constants/config';
 
 const useLoanCalculator = (params) => {
     const {
@@ -17,9 +18,7 @@ const useLoanCalculator = (params) => {
         const prepaymentsMap = new Map(localPrepayments.map(p => [parseInt(p.month), parseFloat(String(p.amount || 0).replace(/,/g, ''))]));
         let month = 0;
 
-        const maxMonths = 360; // 30 years limit
-
-        while (balance > 0.01 && month < maxMonths) {
+        while (balance > 0.01 && month < MAX_LOAN_TENURE_MONTHS) {
             const interestComponent = balance * monthlyRate;
             let principalComponent = emiAmount - interestComponent;
             let actualEmi = emiAmount;
@@ -31,7 +30,7 @@ const useLoanCalculator = (params) => {
             
             const prepaymentAmount = prepaymentsMap.get(month + 1) || 0;
             if (prepaymentAmount > 0 && prepaymentAmount > balance - principalComponent) {
-                 throw new Error(`Prepayment in month ${month + 1} exceeds remaining balance.`);
+                 throw new Error(`Prepayment in month ${month + 1} (${prepaymentAmount.toLocaleString()}) exceeds the remaining balance.`);
             }
 
             const endingBalance = balance - principalComponent - prepaymentAmount;
@@ -60,12 +59,12 @@ const useLoanCalculator = (params) => {
             month++;
         }
         
-        if (balance > 0.01 && month >= maxMonths) {
-            throw new Error("Loan cannot be paid off within the 30-year limit with the given inputs.");
+        if (balance > 0.01 && month >= MAX_LOAN_TENURE_MONTHS) {
+            throw new Error(`The loan cannot be paid off within the ${MAX_LOAN_TENURE_MONTHS / 12}-year limit with the given inputs.`);
         }
 
-
         return { schedule, totalInterestPaid };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [startDate, emiPaymentDay]);
 
     const performCalculation = useCallback(() => {
@@ -79,7 +78,7 @@ const useLoanCalculator = (params) => {
                 (calculationMode === 'tenure' && (!loanAmount || !emi || !interestRate))
             ) {
                 setCalculationResults(null);
-                throw new Error("Please fill all required fields to calculate.");
+                throw new Error("Please fill all required fields to perform the calculation.");
             }
              if (Object.values(formErrors).some(e => e)) {
                 setCalculationResults(null);
@@ -93,11 +92,11 @@ const useLoanCalculator = (params) => {
 
             if (isNaN(P) || P <= 0) {
                 setCalculationResults(null);
-                throw new Error("Invalid Loan Amount.");
+                throw new Error("Loan Amount must be a positive number.");
             }
 
             if (calculationMode === 'rate') {
-                if (E * N < P) { setCalculationResults(null); throw new Error("EMI is too low to cover the principal."); }
+                if (E * N < P) { setCalculationResults(null); throw new Error("Total payments (EMI * Tenure) are less than the loan amount. Please increase the EMI or tenure."); }
                 let low = 0, high = 1;
                 for (let i = 0; i < 100; i++) {
                     let mid = (low + high) / 2;
@@ -107,35 +106,35 @@ const useLoanCalculator = (params) => {
                     if (calcEmi > E) high = mid; else low = mid;
                 }
                 R = (low + high) / 2;
-                if (P * R >= E) { setCalculationResults(null); throw new Error("EMI is too low to cover monthly interest."); }
+                const monthlyInterest = P * R;
+                if (monthlyInterest >= E) { setCalculationResults(null); throw new Error(`EMI of ${E.toLocaleString()} is too low to cover the monthly interest of ${monthlyInterest.toLocaleString()}.`); }
 
-                // --- NEW VALIDATION BLOCK ---
                 const calculatedAnnualRate = R * 12 * 100;
-                if (calculatedAnnualRate > 100) {
+                if (calculatedAnnualRate > MAX_CALCULATED_RATE) {
                     setCalculationResults(null);
-                    throw new Error(`Calculated rate (${calculatedAnnualRate.toFixed(2)}%) is too high. Please check your inputs.`);
+                    throw new Error(`Calculated rate of ${calculatedAnnualRate.toFixed(2)}% is unrealistically high. Please check your inputs.`);
                 }
-                // --- END OF NEW BLOCK ---
 
             } else if (calculationMode === 'emi') {
                 if (R === 0) E = P / N;
                 else E = P * R * Math.pow(1 + R, N) / (Math.pow(1 + R, N) - 1);
             } else if (calculationMode === 'tenure') {
-                if (R > 0 && P * R >= E) { setCalculationResults(null); throw new Error("EMI is too low to cover the interest."); }
+                const monthlyInterest = P * R;
+                if (R > 0 && monthlyInterest >= E) { setCalculationResults(null); throw new Error(`EMI is too low. It must be greater than the monthly interest of ${monthlyInterest.toLocaleString()}.`); }
                 if (R === 0) {
-                    if (E > 0) N = P / E; else { setCalculationResults(null); throw new Error("EMI must be positive."); }
+                    if (E > 0) N = P / E; else { setCalculationResults(null); throw new Error("EMI must be a positive number."); }
                 } else {
                     N = Math.log(E / (E - P * R)) / Math.log(1 + R);
                 }
-                if (N > 360) { setCalculationResults(null); throw new Error("Calculated tenure exceeds the 30-year limit."); }
+                if (N > MAX_LOAN_TENURE_MONTHS) { setCalculationResults(null); throw new Error(`Calculated tenure exceeds the ${MAX_LOAN_TENURE_MONTHS / 12}-year limit. Please increase the EMI.`); }
             }
             
             if (isNaN(E) || isNaN(R) || isNaN(N) || N < 0 || !isFinite(E) || !isFinite(R) || !isFinite(N)) {
                 setCalculationResults(null);
-                throw new Error("Calculation resulted in invalid numbers.");
+                throw new Error("Calculation resulted in invalid numbers. Please check your inputs.");
             }
 
-            const originalTenureMonths = Math.min(Math.ceil(N), 360);
+            const originalTenureMonths = Math.min(Math.ceil(N), MAX_LOAN_TENURE_MONTHS);
             
             const { schedule: originalSchedule, totalInterestPaid: originalTotalInterest } = calculateSchedule(P, R, E, originalTenureMonths, []);
             
@@ -150,7 +149,7 @@ const useLoanCalculator = (params) => {
                     if (tenureMessage) tenureMessage += ' and ';
                     tenureMessage += `${actualMonths} month${actualMonths > 1 ? 's' : ''}`;
                 }
-                throw new Error(`EMI is too high for the selected tenure. The loan will be paid off in ${tenureMessage}. Please select a shorter tenure.`);
+                throw new Error(`The provided EMI is too high for the selected tenure. The loan will be paid off in ${tenureMessage}. Please select a shorter tenure or a lower EMI.`);
             }
 
             const { schedule: monthlySchedule, totalInterestPaid: totalInterestWithPrepayment } = calculateSchedule(P, R, E, originalTenureMonths, prepayments);

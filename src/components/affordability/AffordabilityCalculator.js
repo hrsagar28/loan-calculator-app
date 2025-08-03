@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import usePersistentState from '../../hooks/usePersistentState';
 import { formatInputValue, formatCurrency } from '../../utils/formatters';
 import { icons } from '../../constants/icons';
+import { SAFE_EMI_PERCENTAGE } from '../../constants/config';
+import useFormInput from '../../hooks/useFormInput';
 
-// Child components from common folder
 import InputWithValidation from '../common/InputWithValidation';
 import ExpressiveSlider from '../common/ExpressiveSlider';
 
@@ -13,23 +14,21 @@ const AffordabilityCalculator = ({
     setLoanAmount,
     setEmi,
     setCalculationMode,
-    setTenureYears, // Accept the new prop
+    setTenureYears,
     showNotification,
     density,
     handleInteractiveClick
 }) => {
-    // State specific to this calculator mode
-    const [monthlyIncome, setMonthlyIncome] = usePersistentState('monthlyIncome', '');
-    const [monthlyExpenses, setMonthlyExpenses] = usePersistentState('monthlyExpenses', '');
-    const [affordabilityTenure, setAffordabilityTenure] = usePersistentState('affordabilityTenure', '15'); // Renamed to avoid conflict
-    const [interestRate, setInterestRate] = usePersistentState('affordabilityRate', '8.5');
+    const [monthlyIncome, , handleIncomeChange] = useFormInput('');
+    const [monthlyExpenses, , handleExpensesChange] = useFormInput('');
+    const [affordabilityTenure, setAffordabilityTenure] = usePersistentState('affordabilityTenure', '15');
+    const [interestRate, , handleInterestRateChange] = useFormInput('8.5', /^[0-9.]*$/);
     const [activeInput, setActiveInput] = useState(null);
 
-    // Calculation logic encapsulated within the component
     const affordabilityResult = useMemo(() => {
         const income = parseFloat(String(monthlyIncome).replace(/,/g, ''));
         const expenses = parseFloat(String(monthlyExpenses).replace(/,/g, ''));
-        const N = parseInt(affordabilityTenure) * 12; // Use local state for calculation
+        const N = parseInt(affordabilityTenure) * 12;
         const R_annual = parseFloat(interestRate);
 
         if (!monthlyIncome || !monthlyExpenses || !affordabilityTenure || !interestRate) {
@@ -44,7 +43,7 @@ const AffordabilityCalculator = ({
 
         const R = R_annual / 12 / 100;
         const disposableIncome = income - expenses;
-        const safeEmi = disposableIncome * 0.45; // Using 45% of disposable income for EMI
+        const safeEmi = disposableIncome * SAFE_EMI_PERCENTAGE;
 
         let affordableLoanAmount = 0;
         if (R > 0) {
@@ -59,36 +58,14 @@ const AffordabilityCalculator = ({
         };
     }, [monthlyIncome, monthlyExpenses, affordabilityTenure, interestRate]);
 
-    // Handler to apply the calculated affordable amount to the main calculator
     const useAffordableAmount = () => {
         if (affordabilityResult && affordabilityResult.loanAmount) {
             setLoanAmount(String(affordabilityResult.loanAmount));
             setEmi(String(affordabilityResult.emi));
-            setTenureYears(affordabilityTenure); // Update the main tenure state
-            setCalculationMode('rate'); // Switch main calculator to 'rate' mode
+            setTenureYears(affordabilityTenure);
+            setCalculationMode('rate');
             showNotification('Affordable loan amount applied!');
             onClose();
-        }
-    };
-    
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        const rawValue = value.replace(/,/g, '');
-
-        if (!/^\d*\.?\d*$/.test(rawValue)) return;
-
-        switch (name) {
-            case 'monthlyIncome':
-                setMonthlyIncome(rawValue);
-                break;
-            case 'monthlyExpenses':
-                setMonthlyExpenses(rawValue);
-                break;
-            case 'interestRate':
-                setInterestRate(value); 
-                break;
-            default:
-                break;
         }
     };
     
@@ -100,17 +77,17 @@ const AffordabilityCalculator = ({
     const d = density;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="affordability-calculator-title">
             <div className="rounded-2xl shadow-glass w-full max-w-4xl bg-surface-container-high flex flex-col glass-effect border-glass" onClick={e => e.stopPropagation()}>
                <div className={`${d.p} grid md:grid-cols-2 gap-8 items-center`}>
                 <div className="space-y-4">
-                    <h2 className="text-[1.75em] font-semibold text-on-surface font-display text-center md:text-left">Affordability Calculator</h2>
-                    <InputWithValidation id="monthlyIncome" name="monthlyIncome" label="Your Monthly Income" value={activeInput === 'monthlyIncome' ? monthlyIncome : formatInputValue(monthlyIncome)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
-                    <InputWithValidation id="monthlyExpenses" name="monthlyExpenses" label="Your Monthly Expenses" value={activeInput === 'monthlyExpenses' ? monthlyExpenses : formatInputValue(monthlyExpenses)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
+                    <h2 id="affordability-calculator-title" className="text-[1.75em] font-semibold text-on-surface font-display text-center md:text-left">Affordability Calculator</h2>
+                    <InputWithValidation id="monthlyIncome" name="monthlyIncome" label="Your Monthly Income" value={activeInput === 'monthlyIncome' ? monthlyIncome : formatInputValue(monthlyIncome)} onChange={handleIncomeChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
+                    <InputWithValidation id="monthlyExpenses" name="monthlyExpenses" label="Your Monthly Expenses" value={activeInput === 'monthlyExpenses' ? monthlyExpenses : formatInputValue(monthlyExpenses)} onChange={handleExpensesChange} onFocus={handleFocus} onBlur={handleBlur} unit="₹" type="text" maxLength="10" inputMode="decimal" />
                     <div>
-                        <ExpressiveSlider min={1} max={30} step={1} value={Number(affordabilityTenure)} onChange={(v) => setAffordabilityTenure(String(v))} icon="Calendar" handleInteractiveClick={handleInteractiveClick} />
+                        <ExpressiveSlider min={1} max={30} step={1} value={Number(affordabilityTenure)} onChange={(v) => setAffordabilityTenure(String(v))} icon="CalendarIcon" handleInteractiveClick={handleInteractiveClick} />
                     </div>
-                    <InputWithValidation id="interestRate" name="interestRate" label="Assumed Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} icon="Percent" type="text" maxLength="5" inputMode="decimal" />
+                    <InputWithValidation id="interestRate" name="interestRate" label="Assumed Interest Rate (%)" value={interestRate} onChange={handleInterestRateChange} onFocus={handleFocus} onBlur={handleBlur} icon="PercentIcon" type="text" maxLength="5" inputMode="decimal" />
                 </div>
 
                 <div className="min-h-[220px] flex flex-col items-center justify-center transition-all duration-300 ease-in-out p-4 rounded-2xl bg-surface-container">
@@ -129,7 +106,7 @@ const AffordabilityCalculator = ({
                                         <p className="text-2xl font-bold text-tertiary font-display">~{formatCurrency(affordabilityResult.emi)}</p>
                                     </div>
                                     <button onClick={handleInteractiveClick(useAffordableAmount)} className="w-full mt-4 py-3 font-bold rounded-full bg-primary text-on-primary shadow-lg hover:opacity-90 transition-opacity active:scale-95 flex items-center justify-center gap-2">
-                                        <icons.TrendingUp /> Use this Amount
+                                        <icons.TrendingUpIcon /> Use this Amount
                                     </button>
                                 </div>
                             )}
@@ -140,7 +117,7 @@ const AffordabilityCalculator = ({
                         </div>
                     )}
                     {affordabilityResult && !affordabilityResult.error && (
-                        <p className="text-[0.8em] text-on-surface-variant text-center pt-4 max-w-xs mx-auto">*Note: Calculation assumes 45% of your disposable income can be safely allocated to your EMI.</p>
+                        <p className="text-[0.8em] text-on-surface-variant text-center pt-4 max-w-xs mx-auto">*Note: Calculation assumes {SAFE_EMI_PERCENTAGE * 100}% of your disposable income can be safely allocated to your EMI.</p>
                     )}
                 </div>
             </div>

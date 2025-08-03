@@ -28,7 +28,7 @@ const ControlSidebar = ({
                     name="clientName"
                 />
                 <div className="absolute right-0 top-0 h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    <icons.Edit className="w-5 h-5 text-on-surface-variant" />
+                    <icons.EditIcon className="w-5 h-5 text-on-surface-variant" />
                 </div>
             </div>
             
@@ -41,7 +41,7 @@ const ControlSidebar = ({
                 <InputWithValidation id="loanAmount" name="loanAmount" label="Loan Amount" value={activeInput === 'loanAmount' ? loanAmount : formatInputValue(loanAmount)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.loanAmount} unit="₹" type="text" maxLength="12" inputMode="decimal" />
                 
                 <div className="p-3 flex items-center gap-3 bg-surface-container-high rounded-xl text-on-surface-variant">
-                    <icons.Help className="w-4 h-4 flex-shrink-0" />
+                    <icons.HelpIcon className="w-4 h-4 flex-shrink-0" />
                     <p className="text-sm">
                         Not sure how much you can afford?{' '}
                         <button onClick={onOpenAffordabilityModal} className="font-semibold text-primary hover:underline">
@@ -50,15 +50,15 @@ const ControlSidebar = ({
                     </p>
                 </div>
 
-                {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="Calendar" handleInteractiveClick={handleInteractiveClick} />}
+                {calculationMode !== 'tenure' && <ExpressiveSlider min={1} max={30} step={1} value={Number(tenureYears)} onChange={(v) => setTenureYears(String(v))} icon="CalendarIcon" handleInteractiveClick={handleInteractiveClick} />}
                 {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}
-                {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="Percent" type="text" maxLength="5" inputMode="decimal" />}
+                {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="PercentIcon" type="text" maxLength="5" inputMode="decimal" />}
                 
-                <InputWithValidation id="emiPaymentDay" name="emiPaymentDay" label="EMI Payment Day" value={emiPaymentDay} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emiPaymentDay} icon="Calendar" type="text" maxLength="2" inputMode="numeric" helpText="Day from 1-31." />
+                <InputWithValidation id="emiPaymentDay" name="emiPaymentDay" label="EMI Payment Day" value={emiPaymentDay} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emiPaymentDay} icon="CalendarIcon" type="text" maxLength="2" inputMode="numeric" helpText="Day from 1-31." />
                 <div>
                   <label htmlFor="startDate" className="block font-medium mb-1.5 text-on-surface-variant">Loan Start Date</label>
                   <div className="relative input-field rounded-xl">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><icons.Calendar className="text-on-surface-variant" /></div>
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><icons.CalendarIcon className="text-on-surface-variant" /></div>
                     <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl text-on-surface" />
                   </div>
                   <div className="h-5" />
@@ -70,7 +70,7 @@ const ControlSidebar = ({
                             <h3 className="font-semibold text-on-surface">Prepayment Simulator</h3>
                             <p className="text-sm text-on-surface-variant">{prepayments.length} prepayments added</p>
                         </div>
-                        <icons.Add />
+                        <icons.AddIcon />
                     </button>
                 </div>
             </div>

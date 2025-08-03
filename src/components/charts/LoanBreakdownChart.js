@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 const LoanBreakdownChart = ({ principal, interest, isVisible }) => {
-    const total = principal + interest;
-    if (total === 0) return <div className="flex items-center justify-center h-full text-on-surface-variant">No data for chart.</div>;
+    const chartData = useMemo(() => {
+        const total = principal + interest;
+        if (total === 0) return null;
+        const pPct = principal / total;
+        return { pPct };
+    }, [principal, interest]);
 
-    const pPct = principal / total;
+    if (!chartData) {
+        return <div className="flex items-center justify-center h-full text-on-surface-variant">No data for chart.</div>;
+    }
 
     return (
         <div className="flex flex-col items-center justify-center">
@@ -29,13 +35,13 @@ const LoanBreakdownChart = ({ principal, interest, isVisible }) => {
                         className="stroke-primary"
                         strokeWidth="4"
                         fill="transparent"
-                        strokeDasharray={isVisible ? `${pPct * 100}, 100` : '0, 100'}
+                        strokeDasharray={isVisible ? `${chartData.pPct * 100}, 100` : '0, 100'}
                         style={{ transition: 'stroke-dasharray 1.2s var(--ease-expressive)', transform: 'rotate(-90deg)', transformOrigin: 'center' }}
                     />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span className="text-[0.8em] text-on-surface-variant">Principal</span>
-                    <span className="text-[1.75em] font-bold text-on-surface font-display">{(pPct * 100).toFixed(1)}%</span>
+                    <span className="text-[1.75em] font-bold text-on-surface font-display">{(chartData.pPct * 100).toFixed(1)}%</span>
                 </div>
             </div>
             <div className="mt-4 w-full flex justify-center space-x-4 text-[0.8em] text-on-surface-variant">
