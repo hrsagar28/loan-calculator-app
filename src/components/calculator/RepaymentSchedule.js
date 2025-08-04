@@ -5,6 +5,10 @@ const RepaymentSchedule = ({ results, onBack, formatCurrency, density, handleExp
     const [expandedYear, setExpandedYear] = useState(null);
     const [closingYear, setClosingYear] = useState(null);
 
+    if (!results) {
+        return null; // Or a loading indicator
+    }
+
     const toggleYear = (year) => {
         if (expandedYear === year) {
             setClosingYear(year);

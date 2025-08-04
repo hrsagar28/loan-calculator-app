@@ -23,6 +23,8 @@ const Snackbar = lazy(() => import('./components/common/Snackbar'));
 const ConfirmationModal = lazy(() => import('./components/common/ConfirmationModal'));
 const SettingsModal = lazy(() => import('./components/common/SettingsModal'));
 const PrepaymentModal = lazy(() => import('./components/calculator/PrepaymentSimulator').then(module => ({ default: module.PrepaymentModal })));
+const VariableRateModal = lazy(() => import('./components/calculator/VariableRateModal').then(module => ({ default: module.VariableRateModal })));
+
 
 // Fallback component for Suspense
 const Loader = () => <div className="w-full h-full flex items-center justify-center"><p>Loading...</p></div>;
@@ -45,6 +47,8 @@ export default function App() {
     const [emiPaymentDay, setEmiPaymentDay] = usePersistentState('emiPaymentDay', '5');
     const [clientName, setClientName] = usePersistentState('clientName', '');
     const [prepayments, setPrepayments] = usePersistentState('loanPrepayments', []);
+    const [compoundingPeriod, setCompoundingPeriod] = usePersistentState('compoundingPeriod', 'monthly');
+    const [variableRates, setVariableRates] = usePersistentState('variableRates', []);
 
     // UI State
     const [formErrors, ] = useState({});
@@ -54,6 +58,7 @@ export default function App() {
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [isPrepaymentModalOpen, setIsPrepaymentModalOpen] = useState(false);
     const [isAffordabilityModalOpen, setIsAffordabilityModalOpen] = useState(false);
+    const [isVariableRateModalOpen, setIsVariableRateModalOpen] = useState(false);
     
     const [notification, setNotification] = useState({ message: '', type: 'success', id: null });
     const notificationTimeoutRef = useRef(null);
@@ -71,7 +76,7 @@ export default function App() {
     
     // Custom Hook for Calculations
     const { calculationResults, error, isLoading, performCalculation } = useLoanCalculator({
-        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
+        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, compoundingPeriod, variableRates
     });
 
     const showNotification = useCallback((message, type = 'success') => {
@@ -252,7 +257,8 @@ export default function App() {
       setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
       onOpenPrepaymentModal: () => setIsPrepaymentModalOpen(true),
       onOpenAffordabilityModal: () => setIsAffordabilityModalOpen(true),
-      prepayments, d, handleInteractiveClick
+      prepayments, d, handleInteractiveClick, compoundingPeriod, setCompoundingPeriod,
+      onOpenVariableRateModal: () => setIsVariableRateModalOpen(true)
     };
     
     return (
@@ -262,8 +268,6 @@ export default function App() {
                 handleReset={handleReset} handleInteractiveClick={handleInteractiveClick}
             />
 
-            {/* --- Mobile Layout Fix --- */}
-            {/* Increased top padding to prevent overlap and added vertical margin to the switcher to center it. */}
             <div className="flex-grow flex flex-col pt-36 md:pt-40">
                 <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
                     <Suspense fallback={<Loader />}>
@@ -284,6 +288,11 @@ export default function App() {
                             isOpen={isPrepaymentModalOpen} onClose={() => setIsPrepaymentModalOpen(false)}
                             prepayments={prepayments} setPrepayments={setPrepayments}
                             formatCurrency={formatCurrency} handleInteractiveClick={handleInteractiveClick}
+                        />}
+                        {isVariableRateModalOpen && <VariableRateModal
+                            isOpen={isVariableRateModalOpen} onClose={() => setIsVariableRateModalOpen(false)}
+                            variableRates={variableRates} setVariableRates={setVariableRates}
+                            handleInteractiveClick={handleInteractiveClick}
                         />}
                         {isAffordabilityModalOpen && <AffordabilityCalculator
                             isOpen={isAffordabilityModalOpen} onClose={() => setIsAffordabilityModalOpen(false)}

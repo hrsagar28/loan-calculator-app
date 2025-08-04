@@ -4,13 +4,25 @@ import InputWithValidation from '../common/InputWithValidation';
 import ExpressiveSlider from '../common/ExpressiveSlider';
 import CalculationModeSwitcher from '../calculator/CalculationModeSwitcher';
 import { icons } from '../../constants/icons';
+import CustomDropdown from '../common/CustomDropdown';
+import CustomDatePicker from '../common/CustomDatePicker'; // Import the new component
 
 const ControlSidebar = ({
     clientName, setClientName, loanAmount, handleInputChange, activeInput, formatInputValue,
     handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
     setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
-    onOpenPrepaymentModal, onOpenAffordabilityModal, prepayments, d, handleInteractiveClick
+    onOpenPrepaymentModal, onOpenAffordabilityModal, prepayments, d, handleInteractiveClick,
+    compoundingPeriod, setCompoundingPeriod, onOpenVariableRateModal
 }) => {
+    const compoundingOptions = [
+        { value: 'daily', label: 'Daily' },
+        { value: 'fortnightly', label: 'Fortnightly' },
+        { value: 'monthly', label: 'Monthly' },
+        { value: 'quarterly', label: 'Quarterly' },
+        { value: 'semi-annually', label: 'Semi-Annually' },
+        { value: 'annually', label: 'Annually' },
+    ];
+
     return (
         <Card className={`${d.p} h-full flex flex-col`}>
              <div className="relative group flex items-baseline whitespace-nowrap mb-4">
@@ -54,23 +66,37 @@ const ControlSidebar = ({
                 {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}
                 {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="PercentIcon" type="text" maxLength="5" inputMode="decimal" />}
                 
+                <CustomDropdown
+                    id="compoundingPeriod"
+                    label="Compounding Period"
+                    options={compoundingOptions}
+                    value={compoundingPeriod}
+                    onChange={(e) => setCompoundingPeriod(e.target.value)}
+                />
+
                 <InputWithValidation id="emiPaymentDay" name="emiPaymentDay" label="EMI Payment Day" value={emiPaymentDay} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emiPaymentDay} icon="CalendarIcon" type="text" maxLength="2" inputMode="numeric" helpText="Day from 1-31." />
-                <div>
-                  <label htmlFor="startDate" className="block font-medium mb-1.5 text-on-surface-variant">Loan Start Date</label>
-                  <div className="relative input-field rounded-xl">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><icons.CalendarIcon className="text-on-surface-variant" /></div>
-                    <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-transparent border-none rounded-xl text-on-surface" />
-                  </div>
-                  <div className="h-5" />
-                </div>
                 
-                 <div className="pt-4 border-t border-outline-variant mt-auto">
+                <CustomDatePicker
+                    id="startDate"
+                    label="Loan Start Date"
+                    value={startDate}
+                    onChange={setStartDate}
+                />
+                
+                 <div className="pt-4 border-t border-outline-variant mt-auto space-y-2">
                     <button onClick={onOpenPrepaymentModal} className="w-full flex justify-between items-center p-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest transition-colors">
                         <div className="text-left">
                             <h3 className="font-semibold text-on-surface">Prepayment Simulator</h3>
                             <p className="text-sm text-on-surface-variant">{prepayments.length} prepayments added</p>
                         </div>
                         <icons.AddIcon />
+                    </button>
+                    <button onClick={onOpenVariableRateModal} className="w-full flex justify-between items-center p-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest transition-colors">
+                        <div className="text-left">
+                            <h3 className="font-semibold text-on-surface">Variable Interest Rates</h3>
+                            <p className="text-sm text-on-surface-variant">Define rate changes over time</p>
+                        </div>
+                        <icons.TrendingUpIcon />
                     </button>
                 </div>
             </div>

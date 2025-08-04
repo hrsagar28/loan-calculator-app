@@ -6,7 +6,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
     if (!isOpen) return null;
 
     const addPrepayment = () => {
-        setPrepayments([...prepayments, { amount: '', month: '' }]);
+        setPrepayments([...prepayments, { amount: '', month: '', frequency: 'one-time' }]);
     };
 
     const updatePrepayment = (i, field, value) => {
@@ -39,7 +39,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                         </div>
                     ) : prepayments.map((p, i) => (
                          <div key={i} className="grid grid-cols-12 gap-3 items-center animate-cascade-in" style={{animationDelay: `${i*50}ms`}}>
-                            <div className="col-span-5">
+                            <div className="col-span-4">
                                 <div className="relative input-field rounded-xl">
                                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                         <span className="text-on-surface-variant font-sans text-lg">₹</span>
@@ -60,7 +60,7 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                                     />
                                 </div>
                             </div>
-                            <div className="col-span-5">
+                            <div className="col-span-3">
                                 <div className="relative input-field rounded-xl">
                                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                         <icons.CalendarIcon className="text-on-surface-variant" />
@@ -81,6 +81,18 @@ export const PrepaymentModal = ({ isOpen, onClose, prepayments, setPrepayments, 
                                     />
                                 </div>
                             </div>
+                             <div className="col-span-3">
+                                 <select
+                                     value={p.frequency}
+                                     onChange={(e) => updatePrepayment(i, 'frequency', e.target.value)}
+                                     className="w-full px-3 py-2.5 bg-surface-container border border-outline rounded-xl text-on-surface"
+                                 >
+                                     <option value="one-time">One-time</option>
+                                     <option value="monthly">Monthly</option>
+                                     <option value="quarterly">Quarterly</option>
+                                     <option value="annually">Annually</option>
+                                 </select>
+                             </div>
                             <div className="col-span-2 text-center">
                                 <button onClick={handleInteractiveClick(() => removePrepayment(i))} aria-label={`Remove prepayment entry ${i + 1}`} className="group p-2.5 rounded-full text-error hover:bg-error-container/20 transition-colors duration-300">
                                     <icons.TrashIcon className="transition-transform duration-300 group-hover:scale-110" />

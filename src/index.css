@@ -44,8 +44,7 @@ body::before {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* --- FIX: Restore the CSS Variable Bridge --- */
-/* This section explicitly links Tailwind's classes to our dynamic CSS variables */
+/* --- CSS Variable Bridge --- */
 .bg-primary { background-color: var(--color-primary); }
 .text-on-primary { color: var(--color-onPrimary); }
 .bg-primary-container { background-color: var(--color-primaryContainer); }
@@ -55,7 +54,7 @@ body::before {
 .bg-tertiary { background-color: var(--color-tertiary); }
 .text-on-tertiary { color: var(--color-onTertiary); }
 .bg-tertiary-container { background-color: var(--color-tertiaryContainer); }
-.text-on-tertiary-container { color: var(--color-onTertiaryContainer); }
+.text-on-tertiary-container { color: var(--color-onErrorContainer); }
 .bg-error-container { background-color: var(--color-errorContainer); }
 .text-on-error-container { color: var(--color-onErrorContainer); }
 .bg-surface { background-color: var(--color-surface); }
@@ -90,7 +89,7 @@ body::before {
   border: 1px solid var(--color-outline);
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-.input-field:focus-within {
+.input-field:focus-within, .input-field:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 1px var(--color-primary);
 }
@@ -124,20 +123,7 @@ body::before {
     opacity: 0.07;
 }
 
-.collapsible-content {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.collapsible-content.open {
-    grid-template-rows: 1fr;
-}
-.collapsible-content > div {
-    overflow: hidden;
-}
-
-
-/* Keyframe Animations */
+/* --- Keyframe Animations --- */
 @keyframes animated-gradient {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -149,7 +135,7 @@ body::before {
   to { transform: translate(-50%, 0); opacity: 1; }
 }
 .animate-snackbar-in {
-  animation: snackbar-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: snackbar-in 0.5s var(--ease-expressive);
 }
 
 @keyframes cascade-in {
@@ -160,41 +146,46 @@ body::before {
   animation: cascade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-.view-container {
-    animation: fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
-/* --- FIX: Style native date input for dark mode --- */
-input[type="date"] {
-  color-scheme: light;
+.animate-fade-in {
+    animation: fade-in 0.2s var(--ease-expressive);
 }
 
-.dark input[type="date"] {
-  color-scheme: dark;
+@keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-left {
+    animation: slide-in-left 0.2s var(--ease-expressive);
 }
 
-/* Invert the calendar icon color in dark mode for better visibility */
-.dark input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+@keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-right {
+    animation: slide-in-right 0.2s var(--ease-expressive);
 }
 
-/* --- FIX: Make native date picker icon transparent to preserve functionality --- */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  color: transparent;
-  background: transparent;
-  cursor: pointer;
+@keyframes zoom-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
+.animate-zoom-in {
+    animation: zoom-in 0.2s var(--ease-expressive);
+}
+
+@keyframes zoom-out {
+    from { opacity: 0; transform: scale(1.05); }
+    to { opacity: 1; transform: scale(1); }
+}
+.animate-zoom-out {
+    animation: zoom-out 0.2s var(--ease-expressive);
+}
+
 
 /* Custom Scrollbar Styling */
 .table-scrollbar::-webkit-scrollbar {
@@ -210,25 +201,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 .table-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-primary);
-}
-
-/* For the full-screen mobile schedule view */
-.mobile-schedule-view {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-background);
-    z-index: 40; /* Ensure it's above other content */
-    display: flex;
-    flex-direction: column;
-    animation: slide-in 0.3s var(--ease-expressive);
-}
-
-@keyframes slide-in {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
 }
 
 /* For scrolling inside the ControlSidebar */
