@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import LoanBreakdownChart from './LoanBreakdownChart';
 import BalanceDeclineChart from './BalanceDeclineChart';
 import CumulativeChart from './CumulativeChart';
@@ -6,10 +6,15 @@ import CumulativeChart from './CumulativeChart';
 const UnifiedChartView = ({ results, formatCurrency, loanAmount }) => {
     const [activeChart, setActiveChart] = useState('breakdown'); // 'breakdown', 'balance', 'cumulative'
 
+    const principal = useMemo(() => parseFloat(String(loanAmount).replace(/,/g, '')), [loanAmount]);
+
+    // Determine the maximum value for the cumulative chart's Y-axis
+    const cumulativeMax = Math.max(principal, results.totalInterest);
+
     const chartComponents = {
-        breakdown: <LoanBreakdownChart principal={parseFloat(String(loanAmount).replace(/,/g, ''))} interest={results.totalInterest} isVisible={true} />,
-        balance: <BalanceDeclineChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={parseFloat(String(loanAmount).replace(/,/g, ''))} />,
-        cumulative: <CumulativeChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={parseFloat(String(loanAmount).replace(/,/g, ''))} />
+        breakdown: <LoanBreakdownChart principal={principal} interest={results.totalInterest} isVisible={true} />,
+        balance: <BalanceDeclineChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={principal} />,
+        cumulative: <CumulativeChart schedule={results.monthlySchedule} isVisible={true} formatCurrency={formatCurrency} maxChartValue={cumulativeMax} />
     };
 
     return (

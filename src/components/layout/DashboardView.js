@@ -41,7 +41,8 @@ const DashboardView = ({ results, isLoading, hasError, errorMessage, onShowSched
                     results={results} 
                     formatCurrency={formatCurrency} 
                     interestRate={interestRate} 
-                    calculationMode={calculationMode} 
+                    calculationMode={calculationMode}
+                    loanAmount={loanAmount} 
                  />
             </Card>
             <Card className={`${d.p}`}>

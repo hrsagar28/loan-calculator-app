@@ -160,15 +160,22 @@ export default function App() {
         const rawValue = value.replace(/,/g, '');
 
         const stateSetters = {
-            loanAmount: setLoanAmount, emi: setEmi, interestRate: setInterestRate, emiPaymentDay: setEmiPaymentDay,
+            loanAmount: setLoanAmount,
+            emi: setEmi,
+            interestRate: setInterestRate,
         };
 
         if (name === 'loanAmount' || name === 'emi') {
             if (!/^\d*\.?\d*$/.test(rawValue)) return;
             stateSetters[name](rawValue);
-        } else if (name === 'interestRate' || name === 'emiPaymentDay') {
+        } else if (name === 'interestRate') {
             if (!/^[0-9.]*$/.test(value)) return;
             stateSetters[name](value);
+        } else if (name === 'emiPaymentDay') {
+            const day = parseInt(rawValue, 10);
+            if (rawValue === '' || (day > 0 && day <= 31)) {
+                setEmiPaymentDay(rawValue);
+            }
         }
     };
 

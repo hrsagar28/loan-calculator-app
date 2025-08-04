@@ -2,13 +2,15 @@ import React from 'react';
 import { icons } from '../../constants/icons';
 import { PrepaymentSavings } from './PrepaymentSimulator';
 
-const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculationMode }) => {
+const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculationMode, loanAmount }) => {
     if (!results) return null;
 
+    const principalAmount = parseFloat(String(loanAmount).replace(/,/g, ''));
+
     const summaryItems = [
-        { label: "Total Principal", value: formatCurrency(results.totalPayment), color: "text-primary" },
+        { label: "Total Principal", value: formatCurrency(principalAmount), color: "text-primary" },
         { label: "Total Interest", value: formatCurrency(results.totalInterest), color: "text-tertiary" },
-        { label: "Final Tenure", value: `${Math.floor(results.monthlySchedule.length / 12)}y ${results.monthlySchedule.length % 12}m` },
+        { label: "Total Payment", value: formatCurrency(principalAmount + results.totalInterest) },
         {
             label: calculationMode === 'rate' ? "Calculated Rate" : "Interest Rate",
             value: `${(calculationMode === 'rate' ? results.calculatedRate : parseFloat(interestRate)).toFixed(2)}%`,
@@ -16,6 +18,7 @@ const ComprehensiveSummary = ({ results, formatCurrency, interestRate, calculati
         },
         { label: "Final EMI", value: formatCurrency(results.calculatedEmi) },
         { label: "Loan Ends On", value: results.loanEndDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) },
+        { label: "Final Tenure", value: `${Math.floor(results.monthlySchedule.length / 12)}y ${results.monthlySchedule.length % 12}m` },
     ];
 
     const getFontSizeForValue = (value) => {
