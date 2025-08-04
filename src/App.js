@@ -1,27 +1,32 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, Suspense, lazy } from 'react';
 
 // Hooks
 import usePersistentState from './hooks/usePersistentState';
 import useLoanCalculator from './hooks/useLoanCalculator';
 
-// Components
+// Eagerly load components that are visible on initial render
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ControlSidebar from './components/layout/ControlSidebar';
 import DashboardView from './components/layout/DashboardView';
-import RepaymentSchedule from './components/calculator/RepaymentSchedule';
-import AffordabilityCalculator from './components/affordability/AffordabilityCalculator';
-import Snackbar from './components/common/Snackbar';
-import ConfirmationModal from './components/common/ConfirmationModal';
-import SettingsModal from './components/common/SettingsModal';
-import { PrepaymentModal } from './components/calculator/PrepaymentSimulator';
-
 
 // Constants & Utils
 import { themes } from './constants/themes';
 import { icons } from './constants/icons';
 import { formatInputValue, formatCurrency } from './utils/formatters';
 import { generatePdf } from './utils/pdfGenerator';
+
+// Lazy load components that are not immediately visible
+const RepaymentSchedule = lazy(() => import('./components/calculator/RepaymentSchedule'));
+const AffordabilityCalculator = lazy(() => import('./components/affordability/AffordabilityCalculator'));
+const Snackbar = lazy(() => import('./components/common/Snackbar'));
+const ConfirmationModal = lazy(() => import('./components/common/ConfirmationModal'));
+const SettingsModal = lazy(() => import('./components/common/SettingsModal'));
+const PrepaymentModal = lazy(() => import('./components/calculator/PrepaymentSimulator').then(module => ({ default: module.PrepaymentModal })));
+
+// Fallback component for Suspense
+const Loader = () => <div className="w-full h-full flex items-center justify-center"><p>Loading...</p></div>;
+
 
 export default function App() {
     // App-level state
@@ -244,33 +249,34 @@ export default function App() {
                 handleReset={handleReset} handleInteractiveClick={handleInteractiveClick}
             />
 
-            {/* This div now wraps the main content and footer, providing the necessary offset for the fixed header */}
             <div className="flex-grow flex flex-col pt-24 md:pt-28">
                 <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
-                    <SettingsModal
-                        isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
-                        themes={themes} themeName={themeName} setThemeName={setThemeName}
-                        layoutDensity={layoutDensity} setLayoutDensity={setLayoutDensity}
-                        fontSize={fontSize} setFontSize={setFontSize}
-                        handleInteractiveClick={handleInteractiveClick}
-                    />
-                    <ConfirmationModal
-                        isOpen={isResetModalOpen} onClose={() => setIsResetModalOpen(false)}
-                        onConfirm={confirmReset} title="Confirm Reset" handleInteractiveClick={handleInteractiveClick}
-                    >
-                        <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
-                    </ConfirmationModal>
-                    <PrepaymentModal 
-                        isOpen={isPrepaymentModalOpen} onClose={() => setIsPrepaymentModalOpen(false)}
-                        prepayments={prepayments} setPrepayments={setPrepayments}
-                        formatCurrency={formatCurrency} handleInteractiveClick={handleInteractiveClick}
-                    />
-                    <AffordabilityCalculator
-                        isOpen={isAffordabilityModalOpen} onClose={() => setIsAffordabilityModalOpen(false)}
-                        setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
-                        setTenureYears={setTenureYears} // Pass the setter function
-                        showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
-                    />
+                    <Suspense fallback={<Loader />}>
+                        {isSettingsOpen && <SettingsModal
+                            isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
+                            themes={themes} themeName={themeName} setThemeName={setThemeName}
+                            layoutDensity={layoutDensity} setLayoutDensity={setLayoutDensity}
+                            fontSize={fontSize} setFontSize={setFontSize}
+                            handleInteractiveClick={handleInteractiveClick}
+                        />}
+                        {isResetModalOpen && <ConfirmationModal
+                            isOpen={isResetModalOpen} onClose={() => setIsResetModalOpen(false)}
+                            onConfirm={confirmReset} title="Confirm Reset" handleInteractiveClick={handleInteractiveClick}
+                        >
+                            <p>Are you sure you want to reset all data? This will clear all your inputs, including prepayments. This action cannot be undone.</p>
+                        </ConfirmationModal>}
+                        {isPrepaymentModalOpen && <PrepaymentModal 
+                            isOpen={isPrepaymentModalOpen} onClose={() => setIsPrepaymentModalOpen(false)}
+                            prepayments={prepayments} setPrepayments={setPrepayments}
+                            formatCurrency={formatCurrency} handleInteractiveClick={handleInteractiveClick}
+                        />}
+                        {isAffordabilityModalOpen && <AffordabilityCalculator
+                            isOpen={isAffordabilityModalOpen} onClose={() => setIsAffordabilityModalOpen(false)}
+                            setLoanAmount={setLoanAmount} setEmi={setEmi} setCalculationMode={setCalculationMode}
+                            setTenureYears={setTenureYears}
+                            showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
+                        />}
+                    </Suspense>
                     <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex">
                         <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
                         <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
@@ -287,24 +293,26 @@ export default function App() {
                     </div>
                     
                     <div className={`flex-grow min-w-0 ${mobileTab === 'results' ? 'block' : 'hidden'} lg:block`}>
-                        {mainView === 'dashboard' ? (
-                            <DashboardView
-                                results={calculationResults} isLoading={isLoading}
-                                hasError={!!error} errorMessage={error}
-                                onShowSchedule={() => setMainView('schedule')}
-                                formatCurrency={formatCurrency} loanAmount={loanAmount}
-                                interestRate={interestRate} calculationMode={calculationMode}
-                                density={d}
-                            />
-                        ) : (
-                            <RepaymentSchedule
-                                results={calculationResults} onBack={() => setMainView('dashboard')}
-                                formatCurrency={formatCurrency} density={d}
-                                handleExportCsv={handleExportCsv} handleDownloadPdf={handleDownloadPdf}
-                                pdfStatus={pdfStatus} areScriptsReady={areScriptsReady}
-                                handleInteractiveClick={handleInteractiveClick}
-                            />
-                        )}
+                        <Suspense fallback={<Loader />}>
+                            {mainView === 'dashboard' ? (
+                                <DashboardView
+                                    results={calculationResults} isLoading={isLoading}
+                                    hasError={!!error} errorMessage={error}
+                                    onShowSchedule={() => setMainView('schedule')}
+                                    formatCurrency={formatCurrency} loanAmount={loanAmount}
+                                    interestRate={interestRate} calculationMode={calculationMode}
+                                    density={d}
+                                />
+                            ) : (
+                                <RepaymentSchedule
+                                    results={calculationResults} onBack={() => setMainView('dashboard')}
+                                    formatCurrency={formatCurrency} density={d}
+                                    handleExportCsv={handleExportCsv} handleDownloadPdf={handleDownloadPdf}
+                                    pdfStatus={pdfStatus} areScriptsReady={areScriptsReady}
+                                    handleInteractiveClick={handleInteractiveClick}
+                                />
+                            )}
+                        </Suspense>
                     </div>
                     
                     {mobileTab === 'inputs' && (
@@ -320,7 +328,9 @@ export default function App() {
                 </main>
                 <Footer />
             </div>
-            <Snackbar message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: 'success' })} />
+            <Suspense>
+               {notification.message && <Snackbar message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: 'success' })} />}
+            </Suspense>
         </div>
     );
 }
