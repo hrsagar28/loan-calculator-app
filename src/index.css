@@ -146,13 +146,31 @@ body::before {
   animation: cascade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes slide-in-down {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in {
-    animation: fade-in 0.2s var(--ease-expressive);
+.animate-slide-in-down { animation: slide-in-down 0.2s var(--ease-expressive); }
+
+@keyframes slide-in-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
+.animate-slide-in-up { animation: slide-in-up 0.2s var(--ease-expressive); }
+
+/* MODIFICATION START: Add exit animations */
+@keyframes slide-out-down {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+}
+.animate-slide-out-down { animation: slide-out-down 0.2s var(--ease-expressive); }
+
+@keyframes slide-out-up {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+}
+.animate-slide-out-up { animation: slide-out-up 0.2s var(--ease-expressive); }
+/* MODIFICATION END */
 
 @keyframes slide-in-left {
     from { opacity: 0; transform: translateX(20px); }
