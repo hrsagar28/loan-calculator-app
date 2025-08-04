@@ -55,7 +55,6 @@ export default function App() {
     const [isPrepaymentModalOpen, setIsPrepaymentModalOpen] = useState(false);
     const [isAffordabilityModalOpen, setIsAffordabilityModalOpen] = useState(false);
     
-    // --- IMPROVEMENT 2: Snackbar/Tooltip state refactored ---
     const [notification, setNotification] = useState({ message: '', type: 'success', id: null });
     const notificationTimeoutRef = useRef(null);
     
@@ -75,22 +74,16 @@ export default function App() {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
 
-    // --- IMPROVEMENT 2: Refactored notification logic ---
-    // This function now handles repeated messages correctly by using a unique ID
-    // and managing timeouts to ensure the snackbar re-renders and re-animates.
     const showNotification = useCallback((message, type = 'success') => {
-        // Clear any existing timeout to prevent it from closing the new notification prematurely
         if (notificationTimeoutRef.current) {
             clearTimeout(notificationTimeoutRef.current);
         }
 
-        const newId = Date.now(); // Simple unique ID
+        const newId = Date.now();
         setNotification({ message, type, id: newId });
 
-        // Set a new timeout to clear this specific notification
         notificationTimeoutRef.current = setTimeout(() => {
             setNotification((currentNotification) => 
-                // Only clear if it's the same notification that triggered the timeout
                 currentNotification.id === newId ? { message: '', type: 'success', id: null } : currentNotification
             );
         }, 3000);
@@ -269,9 +262,9 @@ export default function App() {
                 handleReset={handleReset} handleInteractiveClick={handleInteractiveClick}
             />
 
-            {/* --- IMPROVEMENT 1: Mobile Layout Fix --- */}
-            {/* Increased top padding to prevent content from hiding under the header on mobile. */}
-            <div className="flex-grow flex flex-col pt-28 md:pt-32">
+            {/* --- Mobile Layout Fix --- */}
+            {/* Increased top padding again for mobile and medium screens. */}
+            <div className="flex-grow flex flex-col pt-32 md:pt-36">
                 <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
                     <Suspense fallback={<Loader />}>
                         {isSettingsOpen && <SettingsModal
@@ -351,8 +344,6 @@ export default function App() {
                 <Footer />
             </div>
             <Suspense>
-               {/* --- IMPROVEMENT 2: Key added to Snackbar --- */}
-               {/* The key prop ensures React creates a new component instance, re-triggering animations. */}
                {notification.message && <Snackbar key={notification.id} message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: 'success', id: null })} />}
             </Suspense>
         </div>
