@@ -54,7 +54,11 @@ export default function App() {
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [isPrepaymentModalOpen, setIsPrepaymentModalOpen] = useState(false);
     const [isAffordabilityModalOpen, setIsAffordabilityModalOpen] = useState(false);
-    const [notification, setNotification] = useState({ message: '', type: 'success' });
+    
+    // --- IMPROVEMENT 2: Snackbar/Tooltip state refactored ---
+    const [notification, setNotification] = useState({ message: '', type: 'success', id: null });
+    const notificationTimeoutRef = useRef(null);
+    
     const [pdfStatus, setPdfStatus] = useState('idle');
     const [areScriptsReady, setAreScriptsReady] = useState(false);
     
@@ -71,9 +75,30 @@ export default function App() {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode
     });
 
-    const handleCalculate = () => {
+    // --- IMPROVEMENT 2: Refactored notification logic ---
+    // This function now handles repeated messages correctly by using a unique ID
+    // and managing timeouts to ensure the snackbar re-renders and re-animates.
+    const showNotification = useCallback((message, type = 'success') => {
+        // Clear any existing timeout to prevent it from closing the new notification prematurely
+        if (notificationTimeoutRef.current) {
+            clearTimeout(notificationTimeoutRef.current);
+        }
+
+        const newId = Date.now(); // Simple unique ID
+        setNotification({ message, type, id: newId });
+
+        // Set a new timeout to clear this specific notification
+        notificationTimeoutRef.current = setTimeout(() => {
+            setNotification((currentNotification) => 
+                // Only clear if it's the same notification that triggered the timeout
+                currentNotification.id === newId ? { message: '', type: 'success', id: null } : currentNotification
+            );
+        }, 3000);
+    }, []);
+
+    const handleCalculate = useCallback(() => {
         performCalculation();
-    };
+    }, [performCalculation]);
     
     useEffect(() => {
         if (calculationResults) {
@@ -86,7 +111,7 @@ export default function App() {
             showNotification(error, 'error');
             setMobileTab('inputs');
         }
-    }, [error]);
+    }, [error, showNotification]);
 
     useLayoutEffect(() => {
         const updateSliderPosition = () => {
@@ -148,16 +173,11 @@ export default function App() {
                 console.error("External script loading failed:", err);
                 showNotification("Failed to load PDF libraries.", "error");
             });
-    }, []);
+    }, [showNotification]);
 
     const handleInteractiveClick = (callback) => (...args) => {
         if (navigator.vibrate) navigator.vibrate(20);
         if (callback) callback(...args);
-    };
-
-    const showNotification = (message, type = 'success') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification({ message: '', type: 'success' }), 3000);
     };
 
     const handleInputChange = (e) => {
@@ -249,7 +269,9 @@ export default function App() {
                 handleReset={handleReset} handleInteractiveClick={handleInteractiveClick}
             />
 
-            <div className="flex-grow flex flex-col pt-24 md:pt-28">
+            {/* --- IMPROVEMENT 1: Mobile Layout Fix --- */}
+            {/* Increased top padding to prevent content from hiding under the header on mobile. */}
+            <div className="flex-grow flex flex-col pt-28 md:pt-32">
                 <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
                     <Suspense fallback={<Loader />}>
                         {isSettingsOpen && <SettingsModal
@@ -277,7 +299,7 @@ export default function App() {
                             showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
                         />}
                     </Suspense>
-                    <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex">
+                    <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex mb-4">
                         <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
                         <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
                             <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
@@ -329,7 +351,9 @@ export default function App() {
                 <Footer />
             </div>
             <Suspense>
-               {notification.message && <Snackbar message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: 'success' })} />}
+               {/* --- IMPROVEMENT 2: Key added to Snackbar --- */}
+               {/* The key prop ensures React creates a new component instance, re-triggering animations. */}
+               {notification.message && <Snackbar key={notification.id} message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: 'success', id: null })} />}
             </Suspense>
         </div>
     );
