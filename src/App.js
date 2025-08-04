@@ -263,8 +263,8 @@ export default function App() {
             />
 
             {/* --- Mobile Layout Fix --- */}
-            {/* Increased top padding again for mobile and medium screens. */}
-            <div className="flex-grow flex flex-col pt-32 md:pt-36">
+            {/* Increased top padding to prevent overlap and added vertical margin to the switcher to center it. */}
+            <div className="flex-grow flex flex-col pt-36 md:pt-40">
                 <main className="flex-grow flex flex-col lg:flex-row p-2 sm:p-4 lg:p-8 pt-0 gap-6 relative">
                     <Suspense fallback={<Loader />}>
                         {isSettingsOpen && <SettingsModal
@@ -292,7 +292,7 @@ export default function App() {
                             showNotification={showNotification} density={d} handleInteractiveClick={handleInteractiveClick}
                         />}
                     </Suspense>
-                    <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex mb-4">
+                    <div ref={mobileTabContainerRef} className="lg:hidden w-full flex-shrink-0 p-1 bg-surface-container-high rounded-full border border-outline-variant shadow-inner relative flex my-4">
                         <div className="absolute top-1 bottom-1 bg-primary rounded-full shadow-md transition-all duration-500" style={{ ...tabSliderStyle, transitionTimingFunction: 'var(--ease-spring)' }}></div>
                         <button ref={inputsTabRef} onClick={handleInteractiveClick(() => setMobileTab('inputs'))} className="relative w-1/2 py-2 font-bold rounded-full z-10 transition-colors duration-300">
                             <span className={mobileTab === 'inputs' ? 'text-on-primary' : 'text-on-surface-variant'}>Inputs</span>
