@@ -12,7 +12,7 @@ const ControlSidebar = ({
     handleFocus, handleBlur, formErrors, calculationMode, setCalculationMode, tenureYears,
     setTenureYears, emi, interestRate, emiPaymentDay, startDate, setStartDate,
     onOpenPrepaymentModal, onOpenAffordabilityModal, prepayments, d, handleInteractiveClick,
-    compoundingPeriod, setCompoundingPeriod, onOpenVariableRateModal
+    compoundingPeriod, setCompoundingPeriod, onOpenVariableRateModal, moratoriumMonths
 }) => {
     const compoundingOptions = [
         { value: 'daily', label: 'Daily' },
@@ -66,6 +66,8 @@ const ControlSidebar = ({
                 {calculationMode !== 'emi' && <InputWithValidation id="emi" name="emi" label="Monthly EMI" value={activeInput === 'emi' ? emi : formatInputValue(emi)} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.emi} unit="₹" type="text" maxLength="9" inputMode="decimal" />}
                 {calculationMode !== 'rate' && <InputWithValidation id="interestRate" name="interestRate" label="Interest Rate (%)" value={interestRate} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.interestRate} icon="PercentIcon" type="text" maxLength="5" inputMode="decimal" />}
                 
+                <InputWithValidation id="moratoriumMonths" name="moratoriumMonths" label="Moratorium Period" value={moratoriumMonths} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur} error={formErrors.moratoriumMonths} icon="PauseIcon" type="text" maxLength="3" inputMode="numeric" helpText="Months with no EMI payments (interest capitalizes)." />
+
                 <CustomDropdown
                     id="compoundingPeriod"
                     label="Compounding Period"

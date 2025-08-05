@@ -49,6 +49,7 @@ export default function App() {
     const [prepayments, setPrepayments] = usePersistentState('loanPrepayments', []);
     const [compoundingPeriod, setCompoundingPeriod] = usePersistentState('compoundingPeriod', 'monthly');
     const [variableRates, setVariableRates] = usePersistentState('variableRates', []);
+    const [moratoriumMonths, setMoratoriumMonths] = usePersistentState('moratoriumMonths', '0');
 
     // UI State
     const [formErrors, ] = useState({});
@@ -76,7 +77,7 @@ export default function App() {
     
     // Custom Hook for Calculations
     const { calculationResults, error, isLoading, performCalculation } = useLoanCalculator({
-        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, compoundingPeriod, variableRates
+        loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, compoundingPeriod, variableRates, moratoriumMonths
     });
 
     const showNotification = useCallback((message, type = 'success') => {
@@ -199,6 +200,11 @@ export default function App() {
             if (rawValue === '' || (day > 0 && day <= 31)) {
                 setEmiPaymentDay(rawValue);
             }
+        } else if (name === 'moratoriumMonths') {
+            const months = parseInt(rawValue, 10);
+            if (rawValue === '' || (months >= 0 && months <= 240)) { // Max 20 years moratorium
+                setMoratoriumMonths(rawValue);
+            }
         }
     };
 
@@ -211,6 +217,7 @@ export default function App() {
         setLoanAmount(''); setTenureYears('15'); setEmi(''); setInterestRate('');
         setStartDate(new Date().toISOString().split('T')[0]); setEmiPaymentDay('5');
         setClientName(''); setPrepayments([]); setMainView('dashboard'); setMobileTab('inputs');
+        setMoratoriumMonths('0');
         setIsResetModalOpen(false); showNotification('All data has been reset.');
     };
 
@@ -258,7 +265,8 @@ export default function App() {
       onOpenPrepaymentModal: () => setIsPrepaymentModalOpen(true),
       onOpenAffordabilityModal: () => setIsAffordabilityModalOpen(true),
       prepayments, d, handleInteractiveClick, compoundingPeriod, setCompoundingPeriod,
-      onOpenVariableRateModal: () => setIsVariableRateModalOpen(true)
+      onOpenVariableRateModal: () => setIsVariableRateModalOpen(true),
+      moratoriumMonths
     };
     
     return (

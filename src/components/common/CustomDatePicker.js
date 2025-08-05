@@ -1,10 +1,50 @@
-import React, { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect, useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { icons } from '../../constants/icons';
 
+// --- Helper Functions ---
+
+/**
+ * Generates the full 42-day grid for the calendar view.
+ * Includes days from the previous, current, and next months.
+ * @param {Date} displayDate - The date for which to generate the calendar month.
+ * @returns {object} An object containing arrays for previous, current, and next month days, and the current year/month.
+ */
+const generateCalendarGrid = (displayDate) => {
+    const year = displayDate.getFullYear();
+    const month = displayDate.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const prevMonth = new Date(year, month, 0);
+    const daysInPrevMonth = prevMonth.getDate();
+
+    const prevMonthDays = [];
+    // Get the last few days of the previous month to fill the grid's start
+    for (let i = firstDayOfMonth; i > 0; i--) {
+        prevMonthDays.push({ day: daysInPrevMonth - i + 1, isCurrentMonth: false, monthOffset: -1 });
+    }
+
+    const currentMonthDays = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+        currentMonthDays.push({ day: i, isCurrentMonth: true, monthOffset: 0 });
+    }
+
+    const totalDays = prevMonthDays.length + currentMonthDays.length;
+    const remainingCells = 42 - totalDays; // Always render 6 weeks (42 cells) for consistent height
+
+    const nextMonthDays = [];
+    for (let i = 1; i <= remainingCells; i++) {
+        nextMonthDays.push({ day: i, isCurrentMonth: false, monthOffset: 1 });
+    }
+
+    return { allDays: [...prevMonthDays, ...currentMonthDays, ...nextMonthDays], year, month };
+};
+
+
 const CustomDatePicker = ({ label, value, onChange, id }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [isClosing, setIsClosing] = useState(false);
     const [view, setView] = useState('days'); // 'days', 'months', 'years'
     const [displayDate, setDisplayDate] = useState(value ? new Date(value) : new Date());
     const [popupStyle, setPopupStyle] = useState({});
@@ -18,14 +58,12 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
     const minYear = 1901;
     const maxYear = 2099;
     
-    const closePopup = () => {
-        setIsClosing(true);
+    const closePopup = useCallback(() => {
         setAnimationClass(opensUp ? 'animate-slide-out-up' : 'animate-slide-out-down');
         setTimeout(() => {
             setIsOpen(false);
-            setIsClosing(false);
         }, 200); // Duration should match animation
-    };
+    }, [opensUp]);
 
     // --- Effects for positioning, closing, and focus management ---
 
@@ -38,7 +76,7 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
 
             let newStyle = {
                 left: `${rect.left}px`,
-                width: `${rect.width < 288 ? 288 : rect.width}px`
+                width: `${rect.width < 320 ? 320 : rect.width}px` // M3 recommends wider popups
             };
             
             const shouldOpenUp = spaceBelow < popupHeight && rect.top > popupHeight;
@@ -58,19 +96,24 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
             if (selectedButton) {
                 selectedButton.focus();
             }
-        } else if (!isOpen && document.activeElement !== buttonRef.current) {
-            buttonRef.current?.focus();
         }
     }, [isOpen]);
 
     useEffect(() => {
+        if (isOpen) {
+            setDisplayDate(value ? new Date(value) : new Date());
+            setView('days');
+        }
+    }, [isOpen, value]);
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isOpen && !isClosing && buttonRef.current && !buttonRef.current.contains(event.target) && popupRef.current && !popupRef.current.contains(event.target)) {
+            if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target) && popupRef.current && !popupRef.current.contains(event.target)) {
                 closePopup();
             }
         };
         const handleScroll = () => {
-            if (isOpen && !isClosing) {
+            if (isOpen) {
                 closePopup();
             }
         };
@@ -82,186 +125,151 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
             document.removeEventListener('mousedown', handleClickOutside);
             window.removeEventListener('scroll', handleScroll, true);
         };
-    }, [isOpen, isClosing, opensUp]);
+    }, [isOpen, closePopup]);
     
     // --- Date Formatting and Grid Generation ---
 
-    const formatDate = (date) => {
+    const formatDate = useCallback((date) => {
         if (!date) return 'Select a date...';
         const d = new Date(date);
         return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' });
-    };
+    }, []);
     
-    const calendarGrid = useMemo(() => {
-        const year = displayDate.getFullYear();
-        const month = displayDate.getMonth();
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-        const paddingDays = Array.from({ length: firstDayOfMonth });
-        
-        const totalCells = paddingDays.length + days.length;
-        const remainingCells = 42 - totalCells;
-        const trailingPaddingDays = Array.from({ length: remainingCells > 0 ? remainingCells : 0 });
-
-        return { days, paddingDays, trailingPaddingDays, year, month };
-    }, [displayDate]);
+    const calendarGrid = useMemo(() => generateCalendarGrid(displayDate), [displayDate]);
 
     // --- Handlers for user interaction ---
 
-    const handleDateSelect = (day) => {
-        const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth(), day);
+    const handleDateSelect = useCallback((day, monthOffset = 0) => {
+        const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth() + monthOffset, day);
         const year = newDate.getFullYear();
         const month = String(newDate.getMonth() + 1).padStart(2, '0');
-        const selectedDay = String(day).padStart(2, '0');
+        const selectedDay = String(newDate.getDate()).padStart(2, '0');
         onChange(`${year}-${month}-${selectedDay}`);
         closePopup();
-    };
+    }, [displayDate, onChange, closePopup]);
 
-    const handleMonthSelect = (monthIndex) => {
+    const handleMonthSelect = useCallback((monthIndex) => {
         setDisplayDate(new Date(displayDate.getFullYear(), monthIndex, 1));
         setView('days');
         setAnimationClass('animate-zoom-in');
-    };
+    }, [displayDate]);
 
-    const handleYearSelect = (year) => {
+    const handleYearSelect = useCallback((year) => {
         setDisplayDate(new Date(year, displayDate.getMonth(), 1));
         setView('months');
         setAnimationClass('animate-zoom-in');
-    };
+    }, [displayDate]);
 
-    const runAnimation = (animation) => {
+    const runAnimation = useCallback((animation) => {
         setAnimationClass('');
         setTimeout(() => {
             setAnimationClass(animation);
         }, 10);
-    };
+    }, []);
 
-    const changeMonth = (offset) => {
+    const changeMonth = useCallback((offset) => {
         runAnimation(offset > 0 ? 'animate-slide-in-right' : 'animate-slide-in-left');
         setDisplayDate(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
-    };
+    }, [runAnimation]);
     
-    const changeYear = (offset) => {
+    const changeYear = useCallback((offset) => {
         runAnimation(offset > 0 ? 'animate-slide-in-right' : 'animate-slide-in-left');
         setDisplayDate(prev => new Date(prev.getFullYear() + offset, prev.getMonth(), 1));
-    };
+    }, [runAnimation]);
 
-    const changeYearBlock = (offset) => {
+    const changeYearBlock = useCallback((offset) => {
         runAnimation(offset > 0 ? 'animate-slide-in-right' : 'animate-slide-in-left');
         setDisplayDate(prev => new Date(prev.getFullYear() + (offset * 12), 0, 1));
-    };
+    }, [runAnimation]);
 
-    const handleHeaderClick = () => {
+    const handleHeaderClick = useCallback(() => {
         if (view === 'days') setView('months');
         if (view === 'months') {
             setYearInput(displayDate.getFullYear());
             setView('years');
         }
         setAnimationClass('animate-zoom-out');
-    };
+    }, [view, displayDate]);
     
-    const handleTodayClick = () => {
-        setDisplayDate(new Date());
+    const handleTodayClick = useCallback(() => {
+        const today = new Date();
+        // Check if the calendar is already displaying the current month and year
+        if (
+          displayDate.getFullYear() === today.getFullYear() &&
+          displayDate.getMonth() === today.getMonth() &&
+          view === 'days'
+        ) {
+          // If already on the correct month, just focus the button as a visual cue
+          const todayButton = popupRef.current?.querySelector('button[data-istoday="true"]');
+          todayButton?.focus();
+          return;
+        }
+    
+        // If not on the current month, navigate to it without selecting the date
+        setDisplayDate(today);
         setView('days');
-        setAnimationClass('animate-zoom-in');
-    };
+        runAnimation('animate-zoom-in');
+    }, [displayDate, view, runAnimation]);
 
-    const handleClearClick = () => {
+    const handleClearClick = useCallback(() => {
         onChange(null);
         closePopup();
-    };
-
-    const handleDayKeyDown = (e, day) => {
-        e.preventDefault();
-        const { key } = e;
-        let newDay = day;
+    }, [onChange, closePopup]);
     
-        if (key === 'ArrowRight') newDay++;
-        else if (key === 'ArrowLeft') newDay--;
-        else if (key === 'ArrowDown') newDay += 7;
-        else if (key === 'ArrowUp') newDay -= 7;
-        else if (key === 'Enter' || key === ' ') {
-            handleDateSelect(day);
-            return;
-        } else {
-            return;
-        }
-    
-        if (newDay > 0 && newDay <= calendarGrid.days.length) {
-            const newDayButton = popupRef.current.querySelector(`[data-day='${newDay}']`);
-            if (newDayButton) {
-                newDayButton.focus();
-            }
-        }
-    };
-
-    const handleYearInputChange = (e) => {
-        const newYear = e.target.value;
-        if (/^\d{0,4}$/.test(newYear)) {
-            setYearInput(newYear);
-        }
-    };
-    
-    const handleYearInputBlur = () => {
-        let year = parseInt(yearInput, 10);
-        if (isNaN(year) || year < minYear || year > maxYear) {
-            year = displayDate.getFullYear();
-        }
-        setYearInput(year);
-        handleYearSelect(year);
-    };
-    
-    const handlePrevClick = () => {
+    const handlePrevClick = useCallback(() => {
         if (view === 'days') changeMonth(-1);
         else if (view === 'months') changeYear(-1);
         else if (view === 'years') changeYearBlock(-1);
-    };
+    }, [view, changeMonth, changeYear, changeYearBlock]);
 
-    const handleNextClick = () => {
+    const handleNextClick = useCallback(() => {
         if (view === 'days') changeMonth(1);
         else if (view === 'months') changeYear(1);
         else if (view === 'years') changeYearBlock(1);
-    };
+    }, [view, changeMonth, changeYear, changeYearBlock]);
 
     // --- Render Logic for Different Views ---
 
     const renderDayView = () => {
         const today = new Date();
         const selectedDate = value ? new Date(value) : null;
-
+        
+        if (selectedDate) {
+            selectedDate.setMinutes(selectedDate.getMinutes() + selectedDate.getTimezoneOffset());
+        }
+        
         return (
             <div className={animationClass}>
                 <div className="grid grid-cols-7 gap-1 text-center text-sm text-on-surface-variant">
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => <div key={day} className="font-bold w-9 h-9 flex items-center justify-center">{day}</div>)}
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => <div key={i} className="font-bold w-10 h-10 flex items-center justify-center">{day}</div>)}
                     
-                    {calendarGrid.paddingDays.map((_, i) => <div key={`pad-${i}`} className="w-9 h-9"></div>)}
+                    {calendarGrid.allDays.map(({ day, isCurrentMonth, monthOffset }, index) => {
+                        const currentDate = new Date(calendarGrid.year, calendarGrid.month + monthOffset, day);
+                        const isSelected = selectedDate && selectedDate.getTime() === currentDate.getTime();
+                        const isToday = today.getDate() === day && today.getMonth() === currentDate.getMonth() && today.getFullYear() === currentDate.getFullYear();
+                        
+                        const shapeClass = isSelected ? 'rounded-xl' : 'rounded-full';
+                        const monthClass = isCurrentMonth ? 'text-on-surface' : 'text-on-surface-variant opacity-60';
 
-                    {calendarGrid.days.map(day => {
-                        const isSelected = selectedDate && selectedDate.getUTCDate() === day && selectedDate.getUTCMonth() === calendarGrid.month && selectedDate.getUTCFullYear() === calendarGrid.year;
-                        const isToday = today.getDate() === day && today.getMonth() === calendarGrid.month && today.getFullYear() === calendarGrid.year;
-                        // MODIFICATION START: Conditional shape based on isSelected
-                        const shapeClass = isSelected ? 'rounded-lg' : 'rounded-full';
-                        // MODIFICATION END
+                        const stylingClasses = isSelected
+                            ? 'bg-primary text-on-primary font-bold border-primary'
+                            : isToday
+                            ? `border-primary ${monthClass}`
+                            : `border-transparent hover:border-outline-variant ${monthClass}`;
 
                         return (
                             <button
-                                key={day}
+                                key={`${monthOffset}-${day}-${index}`}
                                 data-day={day}
-                                onClick={() => handleDateSelect(day)}
-                                onKeyDown={(e) => handleDayKeyDown(e, day)}
+                                data-istoday={isToday}
+                                onClick={() => handleDateSelect(day, monthOffset)}
                                 aria-selected={isSelected}
-                                className={`w-9 h-9 flex items-center justify-center transition-all duration-150 ${shapeClass} ${
-                                    isSelected ? 'bg-primary text-on-primary font-bold' : 
-                                    isToday ? 'border-2 border-primary text-primary' : 'hover:bg-surface-container-highest'
-                                }`}
+                                className={`w-10 h-10 flex items-center justify-center transition-all duration-150 border-2 ${shapeClass} ${stylingClasses}`}
                             >
                                 {day}
                             </button>
                         );
                     })}
-                    
-                    {calendarGrid.trailingPaddingDays.map((_, i) => <div key={`trail-pad-${i}`} className="w-9 h-9"></div>)}
                 </div>
             </div>
         );
@@ -275,7 +283,7 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
                     <button
                         key={month}
                         onClick={() => handleMonthSelect(index)}
-                        className="p-3 rounded-lg text-center hover:bg-surface-container-highest transition-colors"
+                        className="p-3 rounded-lg text-center text-on-surface hover:bg-surface-container-highest transition-colors"
                     >
                         {month}
                     </button>
@@ -293,10 +301,26 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
                 <input
                     type="number"
                     value={yearInput}
-                    onChange={handleYearInputChange}
-                    onBlur={handleYearInputBlur}
-                    onKeyDown={(e) => e.key === 'Enter' && handleYearInputBlur()}
-                    className="w-full text-center p-2 mb-3 bg-surface-container rounded-lg border border-outline focus:border-primary focus:ring-1 focus:ring-primary"
+                    onChange={(e) => {
+                        const newYear = e.target.value;
+                        if (/^\d{0,4}$/.test(newYear)) {
+                            setYearInput(newYear);
+                        }
+                    }}
+                    onBlur={() => {
+                        let year = parseInt(yearInput, 10);
+                        if (isNaN(year) || year < minYear || year > maxYear) {
+                            year = displayDate.getFullYear();
+                        }
+                        setYearInput(year);
+                        handleYearSelect(year);
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.target.blur();
+                        }
+                    }}
+                    className="w-full text-center p-2 mb-3 bg-surface-container text-on-surface rounded-lg border border-outline focus:border-primary focus:ring-1 focus:ring-primary"
                     aria-label="Enter year"
                 />
                 <div className="grid grid-cols-3 gap-2">
@@ -305,7 +329,7 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
                             key={year}
                             onClick={() => handleYearSelect(year)}
                             disabled={year < minYear || year > maxYear}
-                            className={`p-3 rounded-lg text-center hover:bg-surface-container-highest transition-colors ${year === currentYear ? 'font-bold text-primary' : ''} disabled:opacity-25 disabled:cursor-not-allowed`}
+                            className={`p-3 rounded-lg text-center text-on-surface hover:bg-surface-container-highest transition-colors ${year === currentYear ? 'font-bold text-primary' : ''} disabled:opacity-25 disabled:cursor-not-allowed`}
                         >
                             {year}
                         </button>
@@ -315,19 +339,6 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
         );
     };
     
-    const currentYearForNav = displayDate.getFullYear();
-    const currentMonthForNav = displayDate.getMonth();
-    const startYearForNav = Math.floor(currentYearForNav / 12) * 12;
-    
-    const canGoBackInYears = startYearForNav > minYear;
-    const canGoForwardInYears = startYearForNav + 11 < maxYear;
-
-    const canGoBackInMonths = currentYearForNav > minYear || (currentYearForNav === minYear && currentMonthForNav > 0);
-    const canGoForwardInMonths = currentYearForNav < maxYear || (currentYearForNav === maxYear && currentMonthForNav < 11);
-    
-    const canGoBackInMonthsView = currentYearForNav > minYear;
-    const canGoForwardInMonthsView = currentYearForNav < maxYear;
-
     return (
         <div className="relative">
             <label htmlFor={id} className="block font-medium mb-1.5 text-on-surface-variant">{label}</label>
@@ -352,36 +363,16 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
                     ref={popupRef}
                     role="dialog"
                     style={popupStyle}
-                    className={`fixed z-50 bg-surface-container-high border-glass glass-effect shadow-glass rounded-xl p-4 flex flex-col ${animationClass}`}
+                    className={`fixed z-50 bg-surface-container-high border-glass glass-effect shadow-glass rounded-2xl p-4 flex flex-col ${animationClass}`}
                 >
                     <div className="flex justify-between items-center mb-4">
-                        <button 
-                            onClick={handlePrevClick} 
-                            disabled={
-                                (view === 'days' && !canGoBackInMonths) ||
-                                (view === 'months' && !canGoBackInMonthsView) ||
-                                (view === 'years' && !canGoBackInYears)
-                            }
-                            className="p-2 rounded-full hover:bg-surface-container-highest disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <icons.ChevronLeftIcon />
-                        </button>
+                        <button onClick={handlePrevClick} className="p-2 rounded-full text-on-surface-variant hover:bg-surface-container-highest disabled:opacity-50 disabled:cursor-not-allowed"><icons.ChevronLeftIcon /></button>
                         <button onClick={handleHeaderClick} className="font-bold text-on-surface-variant hover:text-primary transition-colors p-2 rounded-lg">
                             {view === 'days' && displayDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
                             {view === 'months' && displayDate.getFullYear()}
-                            {view === 'years' && `${startYearForNav} - ${startYearForNav + 11}`}
+                            {view === 'years' && `${Math.floor(displayDate.getFullYear() / 12) * 12} - ${Math.floor(displayDate.getFullYear() / 12) * 12 + 11}`}
                         </button>
-                        <button 
-                            onClick={handleNextClick} 
-                            disabled={
-                                (view === 'days' && !canGoForwardInMonths) ||
-                                (view === 'months' && !canGoForwardInMonthsView) ||
-                                (view === 'years' && !canGoForwardInYears)
-                            }
-                            className="p-2 rounded-full hover:bg-surface-container-highest disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <icons.ChevronRightIcon />
-                        </button>
+                        <button onClick={handleNextClick} className="p-2 rounded-full text-on-surface-variant hover:bg-surface-container-highest disabled:opacity-50 disabled:cursor-not-allowed"><icons.ChevronRightIcon /></button>
                     </div>
                     
                     <div className="flex-grow">
@@ -390,12 +381,10 @@ const CustomDatePicker = ({ label, value, onChange, id }) => {
                         {view === 'years' && renderYearView()}
                     </div>
 
-                    {/* MODIFICATION START: Give "Today" a distinct, pill-shaped button style */}
                     <div className="flex justify-between items-center mt-4 pt-2 border-t border-outline-variant">
                         <button onClick={handleClearClick} className="px-4 py-2 font-semibold text-on-surface-variant hover:bg-surface-container-highest rounded-full">Clear</button>
-                        <button onClick={handleTodayClick} className="px-4 py-2 font-semibold text-primary-container bg-primary text-on-primary rounded-full">Today</button>
+                        <button onClick={handleTodayClick} className="px-4 py-2 font-semibold bg-primary text-on-primary rounded-full">Today</button>
                     </div>
-                    {/* MODIFICATION END */}
                 </div>,
                 document.getElementById('portal-root')
             )}

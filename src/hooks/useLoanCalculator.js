@@ -4,7 +4,7 @@ import { MAX_LOAN_TENURE_MONTHS, MAX_CALCULATED_RATE } from '../constants/config
 const useLoanCalculator = (params) => {
     const {
         loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay,
-        calculationMode, prepayments, formErrors, appMode, compoundingPeriod, variableRates
+        calculationMode, prepayments, formErrors, appMode, compoundingPeriod, variableRates, moratoriumMonths
     } = params;
 
     const [calculationResults, setCalculationResults] = useState(null);
@@ -23,11 +23,13 @@ const useLoanCalculator = (params) => {
         }
     }, [compoundingPeriod]);
 
-    const calculateSchedule = useCallback((principal, initialAnnualRate, emiAmount, initialTenureMonths, localPrepayments = [], localVariableRates = []) => {
+    const calculateSchedule = useCallback((principal, initialAnnualRate, emiAmount, initialTenureMonths, localPrepayments = [], localVariableRates = [], morMonths = 0) => {
         let balance = principal;
         const schedule = [];
         let totalInterestPaid = 0;
-        
+        let cumulativePrincipalPaid = 0;
+        const moratoriumPeriod = parseInt(morMonths, 10) || 0;
+
         const prepaymentsMap = new Map();
         const recurringPrepayments = [];
 
@@ -45,14 +47,46 @@ const useLoanCalculator = (params) => {
         
         let month = 0;
         let currentAnnualRate = initialAnnualRate;
+        const compoundingPeriods = getCompoundingPeriodsPerYear();
 
+        // Moratorium Period Calculation
+        for (let i = 0; i < moratoriumPeriod; i++) {
+            if (variableRatesMap.has(month + 1)) {
+                currentAnnualRate = variableRatesMap.get(month + 1);
+            }
+            const monthlyRate = Math.pow(1 + (currentAnnualRate / 100) / compoundingPeriods, compoundingPeriods / 12) - 1;
+            const interestComponent = balance * monthlyRate;
+            
+            const paymentDate = new Date(startDate);
+            paymentDate.setMonth(paymentDate.getMonth() + month, 1);
+            const daysInMonth = new Date(paymentDate.getFullYear(), paymentDate.getMonth() + 1, 0).getDate();
+            paymentDate.setDate(Math.min(parseInt(emiPaymentDay), daysInMonth));
+
+            schedule.push({
+                month: month + 1,
+                date: paymentDate,
+                beginningBalance: balance,
+                emi: 0,
+                principal: 0,
+                interest: interestComponent,
+                prepayment: 0,
+                endingBalance: balance + interestComponent,
+                cumulativeInterest: totalInterestPaid + interestComponent,
+                cumulativePrincipal: 0,
+                effectiveRate: currentAnnualRate,
+            });
+
+            totalInterestPaid += interestComponent;
+            balance += interestComponent; // Capitalize interest
+            month++;
+        }
+
+        // Regular Repayment Period Calculation
         while (balance > 0.01 && month < MAX_LOAN_TENURE_MONTHS) {
-            // Update interest rate if a variable rate is scheduled for the current month
             if (variableRatesMap.has(month + 1)) {
                 currentAnnualRate = variableRatesMap.get(month + 1);
             }
             
-            const compoundingPeriods = getCompoundingPeriodsPerYear();
             const monthlyRate = Math.pow(1 + (currentAnnualRate / 100) / compoundingPeriods, compoundingPeriods / 12) - 1;
             
             const interestComponent = balance * monthlyRate;
@@ -66,7 +100,6 @@ const useLoanCalculator = (params) => {
             
             let prepaymentAmount = prepaymentsMap.get(month + 1) || 0;
 
-            // Add recurring prepayments
             recurringPrepayments.forEach(rp => {
                 if ((month + 1) >= rp.startMonth) {
                     const monthDiff = (month + 1) - rp.startMonth;
@@ -91,6 +124,7 @@ const useLoanCalculator = (params) => {
             const daysInMonth = new Date(paymentDate.getFullYear(), paymentDate.getMonth() + 1, 0).getDate();
             paymentDate.setDate(Math.min(parseInt(emiPaymentDay), daysInMonth));
 
+            cumulativePrincipalPaid += principalComponent;
 
             schedule.push({
                 month: month + 1,
@@ -102,7 +136,7 @@ const useLoanCalculator = (params) => {
                 prepayment: prepaymentAmount,
                 endingBalance: endingBalance < 0 ? 0 : endingBalance,
                 cumulativeInterest: totalInterestPaid + interestComponent,
-                cumulativePrincipal: (principal - balance) + principalComponent,
+                cumulativePrincipal: cumulativePrincipalPaid,
                 effectiveRate: currentAnnualRate,
             });
 
@@ -136,12 +170,13 @@ const useLoanCalculator = (params) => {
                 throw new Error("Please fix the validation errors before calculating.");
             }
 
-            const P = parseFloat(String(loanAmount).replace(/,/g, ''));
+            const P_initial = parseFloat(String(loanAmount).replace(/,/g, ''));
+            const morMonths = parseInt(moratoriumMonths, 10) || 0;
             let E = parseFloat(String(emi).replace(/,/g, ''));
-            let N = parseInt(tenureYears) * 12;
+            let N_total = parseInt(tenureYears) * 12;
             let R_annual = parseFloat(interestRate);
 
-            if (isNaN(P) || P <= 0) {
+            if (isNaN(P_initial) || P_initial <= 0) {
                 setCalculationResults(null);
                 throw new Error("Loan Amount must be a positive number.");
             }
@@ -149,14 +184,25 @@ const useLoanCalculator = (params) => {
             const compoundingPeriods = getCompoundingPeriodsPerYear();
             let R = Math.pow(1 + (R_annual / 100) / compoundingPeriods, compoundingPeriods / 12) - 1;
 
+            let P_after_moratorium = P_initial;
+            if (R > 0 && morMonths > 0) {
+                P_after_moratorium = P_initial * Math.pow(1 + R, morMonths);
+            }
+
+            let N_repayment = N_total - morMonths;
+
+            if (N_repayment <= 0 && (calculationMode === 'emi' || calculationMode === 'rate')) {
+                throw new Error("Tenure must be longer than the moratorium period.");
+            }
+
             if (calculationMode === 'rate') {
-                if (E * N < P) { setCalculationResults(null); throw new Error("Total payments (EMI * Tenure) are less than the loan amount. Please increase the EMI or tenure."); }
+                if (E * N_repayment < P_after_moratorium) { setCalculationResults(null); throw new Error("Total payments are less than the loan amount after moratorium."); }
                 
                 let low = 0, high = 1; // Corresponds to monthly rate
                 for (let i = 0; i < 100; i++) {
                     let mid = (low + high) / 2;
                     if (mid === 0) break;
-                    let calcEmi = P * mid * Math.pow(1 + mid, N) / (Math.pow(1 + mid, N) - 1);
+                    let calcEmi = P_after_moratorium * mid * Math.pow(1 + mid, N_repayment) / (Math.pow(1 + mid, N_repayment) - 1);
                      if (isNaN(calcEmi) || !isFinite(calcEmi)) { high = mid; continue; }
                     if (calcEmi > E) high = mid; else low = mid;
                 }
@@ -165,7 +211,7 @@ const useLoanCalculator = (params) => {
                 const effectiveAnnualRate = (Math.pow(1 + R, 12) - 1) * 100;
                 R_annual = compoundingPeriods * (Math.pow(1 + effectiveAnnualRate / 100, 1 / compoundingPeriods) - 1) * 100;
                 
-                const monthlyInterest = P * R;
+                const monthlyInterest = P_after_moratorium * R;
                 if (monthlyInterest >= E) { setCalculationResults(null); throw new Error(`EMI of ${E.toLocaleString()} is too low to cover the monthly interest of ${monthlyInterest.toLocaleString()}.`); }
 
                 if (R_annual > MAX_CALCULATED_RATE) {
@@ -174,43 +220,45 @@ const useLoanCalculator = (params) => {
                 }
 
             } else if (calculationMode === 'emi') {
-                if (R === 0) E = P / N;
-                else E = P * R * Math.pow(1 + R, N) / (Math.pow(1 + R, N) - 1);
+                if (R === 0) E = P_after_moratorium / N_repayment;
+                else E = P_after_moratorium * R * Math.pow(1 + R, N_repayment) / (Math.pow(1 + R, N_repayment) - 1);
             } else if (calculationMode === 'tenure') {
-                const monthlyInterest = P * R;
+                const monthlyInterest = P_after_moratorium * R;
                 if (R > 0 && monthlyInterest >= E) { setCalculationResults(null); throw new Error(`EMI is too low. It must be greater than the monthly interest of ${monthlyInterest.toLocaleString()}.`); }
                 if (R === 0) {
-                    if (E > 0) N = P / E; else { setCalculationResults(null); throw new Error("EMI must be a positive number."); }
+                    if (E > 0) N_repayment = P_after_moratorium / E; else { setCalculationResults(null); throw new Error("EMI must be a positive number."); }
                 } else {
-                    N = Math.log(E / (E - P * R)) / Math.log(1 + R);
+                    N_repayment = Math.log(E / (E - P_after_moratorium * R)) / Math.log(1 + R);
                 }
-                if (N > MAX_LOAN_TENURE_MONTHS) { setCalculationResults(null); throw new Error(`Calculated tenure exceeds the ${MAX_LOAN_TENURE_MONTHS / 12}-year limit. Please increase the EMI.`); }
+                N_total = morMonths + N_repayment;
+                if (N_total > MAX_LOAN_TENURE_MONTHS) { setCalculationResults(null); throw new Error(`Calculated tenure exceeds the ${MAX_LOAN_TENURE_MONTHS / 12}-year limit. Please increase the EMI.`); }
             }
             
-            if (isNaN(E) || isNaN(R_annual) || isNaN(N) || N < 0 || !isFinite(E) || !isFinite(R_annual) || !isFinite(N)) {
+            if (isNaN(E) || isNaN(R_annual) || isNaN(N_total) || N_total < 0 || !isFinite(E) || !isFinite(R_annual) || !isFinite(N_total)) {
                 setCalculationResults(null);
                 throw new Error("Calculation resulted in invalid numbers. Please check your inputs.");
             }
 
-            const originalTenureMonths = Math.min(Math.ceil(N), MAX_LOAN_TENURE_MONTHS);
+            const originalTenureMonths = Math.min(Math.ceil(N_total), MAX_LOAN_TENURE_MONTHS);
             
-            const { schedule: originalSchedule, totalInterestPaid: originalTotalInterest } = calculateSchedule(P, R_annual, E, originalTenureMonths, [], []);
+            const { schedule: originalSchedule, totalInterestPaid: originalTotalInterest } = calculateSchedule(P_initial, R_annual, E, originalTenureMonths, [], [], morMonths);
             
             if (calculationMode !== 'tenure' && originalSchedule.length < (parseInt(tenureYears) * 12)) {
-                const actualYears = Math.floor(originalSchedule.length / 12);
-                const actualMonths = originalSchedule.length % 12;
-                let tenureMessage = '';
-                if (actualYears > 0) {
-                    tenureMessage += `${actualYears} year${actualYears > 1 ? 's' : ''}`;
-                }
-                if (actualMonths > 0) {
-                    if (tenureMessage) tenureMessage += ' and ';
-                    tenureMessage += `${actualMonths} month${actualMonths > 1 ? 's' : ''}`;
-                }
-                throw new Error(`The provided EMI is too high for the selected tenure. The loan will be paid off in ${tenureMessage}. Please select a shorter tenure or a lower EMI.`);
+                 const actualTotalMonths = originalSchedule.length;
+                 const actualYears = Math.floor(actualTotalMonths / 12);
+                 const actualMonths = actualTotalMonths % 12;
+                 let tenureMessage = '';
+                 if (actualYears > 0) {
+                     tenureMessage += `${actualYears} year${actualYears > 1 ? 's' : ''}`;
+                 }
+                 if (actualMonths > 0) {
+                     if (tenureMessage) tenureMessage += ' and ';
+                     tenureMessage += `${actualMonths} month${actualMonths > 1 ? 's' : ''}`;
+                 }
+                 throw new Error(`The provided EMI is too high for the selected tenure. The loan will be paid off in ${tenureMessage}. Please select a shorter tenure or a lower EMI.`);
             }
 
-            const { schedule: monthlySchedule, totalInterestPaid: totalInterestWithPrepayment } = calculateSchedule(P, R_annual, E, originalTenureMonths, prepayments, variableRates);
+            const { schedule: monthlySchedule, totalInterestPaid: totalInterestWithPrepayment } = calculateSchedule(P_initial, R_annual, E, originalTenureMonths, prepayments, variableRates, morMonths);
             
             const interestSaved = originalTotalInterest - totalInterestWithPrepayment;
             const tenureReduced = originalSchedule.length - monthlySchedule.length;
@@ -237,7 +285,7 @@ const useLoanCalculator = (params) => {
                 calculatedRate: R_annual,
                 calculatedEmi: E,
                 totalInterest: totalInterestWithPrepayment,
-                totalPayment: P + totalInterestWithPrepayment,
+                totalPayment: P_initial + totalInterestWithPrepayment,
                 monthlySchedule,
                 financialYearBreakdown: Array.from(fyMap.entries()).map(([year, data]) => ({ year, ...data })),
                 loanEndDate: monthlySchedule.length > 0 ? monthlySchedule[monthlySchedule.length - 1].date : new Date(),
@@ -253,7 +301,7 @@ const useLoanCalculator = (params) => {
         } finally {
             setIsLoading(false);
         }
-    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, calculateSchedule, getCompoundingPeriodsPerYear, variableRates]);
+    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, calculateSchedule, getCompoundingPeriodsPerYear, variableRates, moratoriumMonths]);
 
     useEffect(() => {
         if(appMode !== 'calculator') return;
@@ -262,7 +310,7 @@ const useLoanCalculator = (params) => {
         if(isDesktop) {
             performCalculation();
         }
-    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, performCalculation, compoundingPeriod, variableRates]);
+    }, [loanAmount, tenureYears, emi, interestRate, startDate, emiPaymentDay, calculationMode, prepayments, formErrors, appMode, performCalculation, compoundingPeriod, variableRates, moratoriumMonths]);
 
     return { calculationResults, error, isLoading, performCalculation };
 };
